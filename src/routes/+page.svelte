@@ -132,6 +132,42 @@
 	function visionOf(c: Candidate): string {
 		return c.vision?.trim() || c.mission?.trim().split('\n')[0] || '';
 	}
+
+	let resetTimer: ReturnType<typeof setTimeout> | null = null;
+	let countdownTimer: ReturnType<typeof setInterval> | null = null;
+	let countdown = $state(0);
+
+	function backToBallot() {
+		done = false;
+		digits = ['', '', '', '', ''];
+		pickedId = null;
+		showConfirm = false;
+		submitError = '';
+		tokenState = 'idle';
+		tokenError = '';
+		voterType = null;
+		lastChecked = '';
+		countdown = 0;
+		window.scrollTo({ top: 0 });
+	}
+
+	// Setelah suara tercatat, kembali otomatis ke surat suara dalam 5 detik
+	$effect(() => {
+		if (done) {
+			countdown = 5;
+			countdownTimer = setInterval(() => {
+				countdown -= 1;
+				if (countdown <= 0 && countdownTimer) clearInterval(countdownTimer);
+			}, 1000);
+			resetTimer = setTimeout(backToBallot, 5000);
+		}
+		return () => {
+			if (resetTimer) clearTimeout(resetTimer);
+			if (countdownTimer) clearInterval(countdownTimer);
+			resetTimer = null;
+			countdownTimer = null;
+		};
+	});
 </script>
 
 <svelte:head>
@@ -151,6 +187,7 @@
 				<span class="stamp-big">SAH</span>
 				<h2 class="text-2xl font-extrabold mt-8 mb-2">Suaramu tercatat</h2>
 				<p class="hint !mb-0">Terima kasih sudah berpartisipasi.<br />Satu token, satu suara.</p>
+				<p class="mt-4 text-sm text-faint">Kembali ke surat suara dalam {countdown} detik…</p>
 			</div>
 		{:else if !data.votingOpen}
 			<div class="kop">
