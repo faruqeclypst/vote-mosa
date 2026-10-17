@@ -1,0 +1,64 @@
+-- Skema database pemilihan OSIS (Neon Postgres). Idempoten: aman dijalankan ulang.
+-- Cara pakai: buka SQL Editor di dashboard Neon, tempel seluruh isi file ini, jalankan.
+
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
+
+CREATE TABLE IF NOT EXISTS admins (
+	id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+	email text UNIQUE NOT NULL,
+	name text NOT NULL,
+	password_hash text NOT NULL,
+	role text NOT NULL DEFAULT 'admin' CHECK (role IN ('super', 'admin')),
+	created_at timestamptz NOT NULL DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS candidates (
+	id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+	name text NOT NULL,
+	photo_url text,
+	vision text,
+	mission text,
+	sort_order int NOT NULL DEFAULT 0,
+	created_at timestamptz NOT NULL DEFAULT now(),
+	updated_at timestamptz NOT NULL DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS tokens (
+	id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+	code varchar(8) UNIQUE NOT NULL,
+	type text NOT NULL CHECK (type IN ('student', 'teacher')),
+	label text,
+	is_used boolean NOT NULL DEFAULT false,
+	used_at timestamptz,
+	created_at timestamptz NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS idx_tokens_code ON tokens (code);
+CREATE INDEX IF NOT EXISTS idx_tokens_used ON tokens (is_used);
+
+CREATE TABLE IF NOT EXISTS votes (
+	id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+	candidate_id uuid NOT NULL REFERENCES candidates (id) ON DELETE CASCADE,
+	token_id uuid UNIQUE NOT NULL REFERENCES tokens (id),
+	points int NOT NULL CHECK (points IN (1, 2)),
+	created_at timestamptz NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS idx_votes_candidate ON votes (candidate_id);
+
+CREATE TABLE IF NOT EXISTS sessions (
+	id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+	admin_id uuid NOT NULL REFERENCES admins (id) ON DELETE CASCADE,
+	expires_at timestamptz NOT NULL,
+	created_at timestamptz NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS idx_sessions_expires ON sessions (expires_at);
+
+CREATE TABLE IF NOT EXISTS settings (
+	key text PRIMARY KEY,
+	value text NOT NULL
+);
+
+INSERT INTO settings (key, value) VALUES
+	('voting_open', 'true'),
+	('election_title', 'Pemilihan Ketua OSIS'),
+	('school_name', 'SMAN Modal Bangsa')
+ON CONFLICT (key) DO NOTHING;
