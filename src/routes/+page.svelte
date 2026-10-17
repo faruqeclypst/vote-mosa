@@ -236,7 +236,7 @@
 			<div class="kop">
 				<div class="kop-school">{data.school.toUpperCase()}</div>
 				<h1 class="kop-title">{data.title}</h1>
-				<div class="kop-period">Tahun Ajaran 2025/2026 &middot; Surat Suara Digital</div>
+				<div class="kop-period">Tahun Ajaran 2026/2027 &middot; Surat Suara Digital</div>
 			</div>
 			<div class="rule-double"></div>
 

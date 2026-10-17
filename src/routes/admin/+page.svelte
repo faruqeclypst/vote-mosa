@@ -50,7 +50,7 @@
 			<div class="kop">
 				<div class="kop-school">SMAN MODAL BANGSA</div>
 				<h1 class="kop-title">Berita Acara Digital</h1>
-				<div class="kop-period">Pemilihan Ketua OSIS &middot; Tahun Ajaran 2025/2026</div>
+				<div class="kop-period">Pemilihan Ketua OSIS &middot; Tahun Ajaran 2026/2027</div>
 			</div>
 			<div class="rule-double"></div>
 			<div class="flex flex-wrap items-center justify-between gap-3 mb-6">
