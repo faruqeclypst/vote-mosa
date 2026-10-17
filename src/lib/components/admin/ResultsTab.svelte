@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { onMount, onDestroy } from 'svelte';
+	import { RefreshCw } from '@lucide/svelte';
 
 	interface PerCandidate {
 		id: string;
@@ -22,7 +23,7 @@
 		totalPoints: number;
 	}
 
-	const PALETTE = ['#b3261e', '#1f5c3d', '#b97c1a', '#2c5f8a', '#6b3fa0', '#8a5a2b', '#3d6b6b', '#a03a5c'];
+	const PALETTE = ['#2563eb', '#10b981', '#f59e0b', '#0ea5e9', '#34d399', '#fbbf24', '#1d4ed8', '#047857'];
 
 	let data = $state<Results | null>(null);
 	let error = $state('');
@@ -79,55 +80,56 @@
 </script>
 
 <div class="flex items-center justify-between mb-6">
-	<h1 class="font-display text-3xl tracking-tight">Hasil</h1>
+	<h1 class="page-title">Hasil</h1>
 	<div class="flex items-center gap-3">
 		{#if lastUpdated}
-			<p class="text-xs text-ink-soft hidden sm:block">
+			<p class="text-xs text-slate-500 hidden sm:block">
 				Diperbarui {lastUpdated.toLocaleTimeString('id-ID')} (otomatis tiap 5 detik)
 			</p>
 		{/if}
-		<button type="button" onclick={() => load()} class="min-h-[44px] px-4 rounded-lg border-2 border-ink bg-white text-sm font-semibold hover:bg-paper-deep">
+		<button type="button" onclick={() => load()} class="btn-secondary btn-sm">
+			<RefreshCw class="h-4 w-4" />
 			Muat ulang
 		</button>
 	</div>
 </div>
 
 {#if loading && !data}
-	<p class="text-ink-soft">Memuat hasil...</p>
+	<p class="text-slate-500">Memuat hasil...</p>
 {:else if error && !data}
-	<p role="alert" class="text-brand-deep font-semibold">{error}</p>
+	<p role="alert" class="alert-error">{error}</p>
 {:else if data}
 	{#if data.perCandidate.length === 0}
-		<div class="rounded-xl border border-line bg-paper-deep p-6 text-ink-soft">
+		<div class="card-pad text-slate-500">
 			Belum ada kandidat atau suara masuk.
 		</div>
 	{:else}
-		<div class="grid gap-8 lg:grid-cols-2 mb-10">
-			<section aria-label="Grafik batang perolehan poin" class="rounded-2xl border-2 border-ink bg-white p-6">
-				<h2 class="font-display text-xl mb-5">Perolehan poin</h2>
+		<div class="grid gap-5 lg:grid-cols-2 mb-10">
+			<section aria-label="Grafik batang perolehan poin" class="card-pad">
+				<h2 class="text-xl font-bold text-slate-900 mb-5">Perolehan poin</h2>
 				<div class="space-y-4">
 					{#each data.perCandidate as c, i}
 						<div>
-							<div class="flex justify-between text-sm mb-1">
-								<span class="font-semibold truncate pr-2">{c.name}</span>
-								<span class="text-ink-soft shrink-0">{c.points} poin</span>
+							<div class="flex justify-between text-sm mb-1.5">
+								<span class="font-semibold text-slate-900 truncate pr-2">{c.name}</span>
+								<span class="text-slate-500 shrink-0">{c.points} poin</span>
 							</div>
-							<div class="h-4 rounded bg-paper-deep overflow-hidden" role="img" aria-label="{c.name}: {c.points} poin">
-								<div class="h-full rounded" style="width: {(c.points / maxPoints) * 100}%; background-color: {PALETTE[i % PALETTE.length]};"></div>
+							<div class="h-3.5 rounded-full bg-slate-100 overflow-hidden" role="img" aria-label="{c.name}: {c.points} poin">
+								<div class="h-full rounded-full transition-all" style="width: {(c.points / maxPoints) * 100}%; background-color: {PALETTE[i % PALETTE.length]};"></div>
 							</div>
 						</div>
 					{/each}
 				</div>
 			</section>
 
-			<section aria-label="Diagram lingkaran perolehan poin" class="rounded-2xl border-2 border-ink bg-white p-6">
-				<h2 class="font-display text-xl mb-5">Porsi suara</h2>
+			<section aria-label="Diagram lingkaran perolehan poin" class="card-pad">
+				<h2 class="text-xl font-bold text-slate-900 mb-5">Porsi suara</h2>
 				{#if data.totalPoints === 0}
-					<p class="text-ink-soft">Belum ada suara masuk.</p>
+					<p class="text-slate-500">Belum ada suara masuk.</p>
 				{:else}
 					<div class="flex flex-col sm:flex-row items-center gap-6">
-						<svg width="140" height="140" viewBox="0 0 140 140" role="img" aria-label="Diagram lingkaran porsi poin per kandidat">
-							<circle cx="70" cy="70" r="54" fill="none" stroke="#f1e9d8" stroke-width="24" />
+						<svg width="140" height="140" viewBox="0 0 140 140" role="img" aria-label="Diagram lingkaran porsi poin per kandidat" class="shrink-0">
+							<circle cx="70" cy="70" r="54" fill="none" stroke="#f1f5f9" stroke-width="24" />
 							{#each donutSegments() as s}
 								<circle
 									cx="70"
@@ -144,12 +146,12 @@
 								</circle>
 							{/each}
 						</svg>
-						<ul class="space-y-2 text-sm w-full">
+						<ul class="space-y-2.5 text-sm w-full">
 							{#each data.perCandidate as c, i}
-								<li class="flex items-center gap-2">
-									<span class="w-4 h-4 rounded-sm shrink-0" style="background-color: {PALETTE[i % PALETTE.length]};" aria-hidden="true"></span>
-									<span class="flex-1 truncate">{c.name}</span>
-									<span class="text-ink-soft font-semibold">{c.sharePct}%</span>
+								<li class="flex items-center gap-2.5">
+									<span class="w-4 h-4 rounded shrink-0" style="background-color: {PALETTE[i % PALETTE.length]};" aria-hidden="true"></span>
+									<span class="flex-1 truncate text-slate-700">{c.name}</span>
+									<span class="text-slate-500 font-bold">{c.sharePct}%</span>
 								</li>
 							{/each}
 						</ul>
@@ -159,66 +161,74 @@
 		</div>
 
 		<section aria-label="Peringkat kandidat" class="mb-10">
-			<h2 class="font-display text-2xl tracking-tight mb-4">Peringkat</h2>
-			<div class="overflow-x-auto rounded-xl border border-line">
-				<table class="w-full text-sm bg-white">
+			<h2 class="section-title mb-4">Peringkat</h2>
+			<div class="table-wrap">
+				<table class="table">
 					<thead>
-						<tr class="border-b border-line text-left">
-							<th scope="col" class="px-4 py-3 font-semibold">Peringkat</th>
-							<th scope="col" class="px-4 py-3 font-semibold">Kandidat</th>
-							<th scope="col" class="px-4 py-3 font-semibold text-right">Suara</th>
-							<th scope="col" class="px-4 py-3 font-semibold text-right">Poin</th>
-							<th scope="col" class="px-4 py-3 font-semibold text-right">Porsi</th>
+						<tr>
+							<th scope="col">Peringkat</th>
+							<th scope="col">Kandidat</th>
+							<th scope="col" class="text-right">Suara</th>
+							<th scope="col" class="text-right">Poin</th>
+							<th scope="col" class="text-right">Porsi</th>
 						</tr>
 					</thead>
 					<tbody>
 						{#each data.perCandidate as c, i}
-							<tr class="border-b border-line last:border-0 {i === 0 ? 'bg-paper-deep/50' : ''}">
-								<td class="px-4 py-3 font-display text-lg">{i + 1}</td>
-								<td class="px-4 py-3 font-semibold">{c.name}</td>
-								<td class="px-4 py-3 text-right">{c.votes}</td>
-								<td class="px-4 py-3 text-right font-semibold">{c.points}</td>
-								<td class="px-4 py-3 text-right text-ink-soft">{c.sharePct}%</td>
+							<tr class={i === 0 ? 'bg-blue-50/60' : ''}>
+								<td>
+									<span class="inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-bold {i === 0 ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-600'}">
+										{i + 1}
+									</span>
+								</td>
+								<td class="font-semibold text-slate-900">{c.name}</td>
+								<td class="text-right">{c.votes}</td>
+								<td class="text-right font-bold text-slate-900">{c.points}</td>
+								<td class="text-right text-slate-500">{c.sharePct}%</td>
 							</tr>
 						{/each}
 					</tbody>
 				</table>
 			</div>
-			<div class="flex gap-6 mt-4 text-sm text-ink-soft">
+			<div class="flex flex-wrap gap-x-6 gap-y-2 mt-4 text-sm text-slate-500">
 				{#each data.byType as b}
-					<span>{b.type === 'teacher' ? 'Suara guru' : 'Suara siswa'}: <strong class="text-ink">{b.votes}</strong> ({b.points} poin)</span>
+					<span>{b.type === 'teacher' ? 'Suara guru' : 'Suara siswa'}: <strong class="text-slate-900">{b.votes}</strong> ({b.points} poin)</span>
 				{/each}
 			</div>
 		</section>
 
 		<section aria-label="Suara masuk terbaru">
-			<h2 class="font-display text-2xl tracking-tight mb-4">Suara terbaru</h2>
+			<h2 class="section-title mb-4">Suara terbaru</h2>
 			{#if data.recentVotes.length === 0}
-				<div class="rounded-xl border border-line bg-paper-deep p-6 text-ink-soft">Belum ada suara masuk.</div>
+				<div class="card-pad text-slate-500">Belum ada suara masuk.</div>
 			{:else}
-				<div class="overflow-x-auto rounded-xl border border-line">
-					<table class="w-full text-sm bg-white">
+				<div class="table-wrap">
+					<table class="table">
 						<thead>
-							<tr class="border-b border-line text-left">
-								<th scope="col" class="px-4 py-3 font-semibold">Waktu</th>
-								<th scope="col" class="px-4 py-3 font-semibold">Kandidat</th>
-								<th scope="col" class="px-4 py-3 font-semibold">Tipe pemilih</th>
-								<th scope="col" class="px-4 py-3 font-semibold text-right">Poin</th>
+							<tr>
+								<th scope="col">Waktu</th>
+								<th scope="col">Kandidat</th>
+								<th scope="col">Tipe pemilih</th>
+								<th scope="col" class="text-right">Poin</th>
 							</tr>
 						</thead>
 						<tbody>
 							{#each data.recentVotes as v}
-								<tr class="border-b border-line last:border-0">
-									<td class="px-4 py-3 text-ink-soft whitespace-nowrap">{fmtTime(v.created_at)}</td>
-									<td class="px-4 py-3 font-semibold">{v.candidate_name}</td>
-									<td class="px-4 py-3">{v.voter_type === 'teacher' ? 'Guru' : 'Siswa'}</td>
-									<td class="px-4 py-3 text-right">{v.points}</td>
+								<tr>
+									<td class="text-slate-500 whitespace-nowrap">{fmtTime(v.created_at)}</td>
+									<td class="font-semibold text-slate-900">{v.candidate_name}</td>
+									<td>
+										<span class={v.voter_type === 'teacher' ? 'badge-amber' : 'badge-blue'}>
+											{v.voter_type === 'teacher' ? 'Guru' : 'Siswa'}
+										</span>
+									</td>
+									<td class="text-right">{v.points}</td>
 								</tr>
 							{/each}
 						</tbody>
 					</table>
 				</div>
-				<p class="text-xs text-ink-soft mt-3">Kode token tidak ditampilkan di sini demi kerahasiaan pilihan pemilih.</p>
+				<p class="text-xs text-slate-500 mt-3">Kode token tidak ditampilkan di sini demi kerahasiaan pilihan pemilih.</p>
 			{/if}
 		</section>
 	{/if}

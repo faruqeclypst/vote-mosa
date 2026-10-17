@@ -58,44 +58,44 @@
 	onMount(load);
 </script>
 
-<h1 class="font-display text-3xl tracking-tight mb-6">Pengaturan</h1>
+<h1 class="page-title mb-6">Pengaturan</h1>
 
 {#if loading}
-	<p class="text-ink-soft">Memuat pengaturan...</p>
+	<p class="text-slate-500">Memuat pengaturan...</p>
 {:else}
 	<form onsubmit={save} class="max-w-xl space-y-6">
-		<fieldset class="rounded-2xl border-2 border-ink bg-white p-6">
-			<legend class="font-display text-xl px-2">Status voting</legend>
+		<fieldset class="card-pad">
+			<legend class="text-lg font-bold text-slate-900 px-1">Status voting</legend>
 			<label class="flex items-start gap-3 cursor-pointer">
-				<input type="checkbox" bind:checked={votingOpen} class="mt-1 w-6 h-6 accent-[#b3261e]" />
+				<input type="checkbox" bind:checked={votingOpen} class="mt-1 w-6 h-6 accent-blue-600" />
 				<span>
-					<span class="font-semibold block">Voting dibuka</span>
-					<span class="text-sm text-ink-soft">
+					<span class="font-semibold text-slate-900 block">Voting dibuka</span>
+					<span class="text-sm text-slate-500">
 						Jika dimatikan, pemilih melihat pesan voting ditutup dan tidak bisa mengirim suara.
 					</span>
 				</span>
 			</label>
 		</fieldset>
 
-		<fieldset class="rounded-2xl border-2 border-ink bg-white p-6 space-y-4">
-			<legend class="font-display text-xl px-2">Identitas pemilihan</legend>
+		<fieldset class="card-pad space-y-4">
+			<legend class="text-lg font-bold text-slate-900 px-1">Identitas pemilihan</legend>
 			<div>
-				<label for="s-title" class="block font-semibold mb-2">Judul pemilihan</label>
-				<input id="s-title" type="text" bind:value={title} required minlength="2" maxlength="120" class="w-full min-h-[52px] px-4 rounded-lg border-2 border-ink bg-white" />
+				<label for="s-title" class="field-label">Judul pemilihan</label>
+				<input id="s-title" type="text" bind:value={title} required minlength="2" maxlength="120" class="input-field" />
 			</div>
 			<div>
-				<label for="s-school" class="block font-semibold mb-2">Nama sekolah</label>
-				<input id="s-school" type="text" bind:value={school} required minlength="2" maxlength="120" class="w-full min-h-[52px] px-4 rounded-lg border-2 border-ink bg-white" />
+				<label for="s-school" class="field-label">Nama sekolah</label>
+				<input id="s-school" type="text" bind:value={school} required minlength="2" maxlength="120" class="input-field" />
 			</div>
 		</fieldset>
 
 		{#if error}
-			<p role="alert" class="text-brand-deep font-semibold">{error}</p>
+			<p role="alert" class="alert-error">{error}</p>
 		{/if}
 		{#if saved}
-			<p role="status" class="text-green-800 font-semibold">Pengaturan tersimpan.</p>
+			<p role="status" class="alert-success">Pengaturan tersimpan.</p>
 		{/if}
-		<button type="submit" disabled={saving} class="min-h-[56px] px-8 rounded-lg bg-brand text-white font-semibold hover:bg-brand-deep disabled:opacity-50 transition-colors">
+		<button type="submit" disabled={saving} class="btn-primary">
 			{saving ? 'Menyimpan...' : 'Simpan pengaturan'}
 		</button>
 	</form>

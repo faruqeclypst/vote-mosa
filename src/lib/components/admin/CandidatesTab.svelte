@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import Photo from '$lib/components/Photo.svelte';
+	import { Pencil, Trash2 } from '@lucide/svelte';
 
 	interface Candidate {
 		id: string;
@@ -112,56 +113,56 @@
 	});
 </script>
 
-<h1 class="font-display text-3xl tracking-tight mb-6">Kandidat</h1>
+<h1 class="page-title mb-6">Kandidat</h1>
 
 {#if error}
-	<p role="alert" class="text-brand-deep font-semibold mb-4">{error}</p>
+	<p role="alert" class="alert-error mb-4">{error}</p>
 {/if}
 
-<section aria-label={editingId ? 'Ubah kandidat' : 'Tambah kandidat'} class="rounded-2xl border-2 border-ink bg-white p-6 mb-10">
-	<h2 class="font-display text-xl mb-4">{editingId ? 'Ubah kandidat' : 'Tambah kandidat'}</h2>
+<section aria-label={editingId ? 'Ubah kandidat' : 'Tambah kandidat'} class="card-pad mb-10">
+	<h2 class="text-xl font-bold text-slate-900 mb-4">{editingId ? 'Ubah kandidat' : 'Tambah kandidat'}</h2>
 	<form onsubmit={save} class="grid gap-4 sm:grid-cols-2">
 		<div>
-			<label for="c-name" class="block font-semibold mb-2">Nama</label>
-			<input id="c-name" type="text" bind:value={name} required minlength="2" maxlength="120" class="w-full min-h-[52px] px-4 rounded-lg border-2 border-ink bg-white" />
+			<label for="c-name" class="field-label">Nama</label>
+			<input id="c-name" type="text" bind:value={name} required minlength="2" maxlength="120" class="input-field" />
 		</div>
 		<div>
-			<label for="c-order" class="block font-semibold mb-2">Urutan tampil</label>
-			<input id="c-order" type="number" bind:value={sort_order} min="0" class="w-full min-h-[52px] px-4 rounded-lg border-2 border-ink bg-white" />
+			<label for="c-order" class="field-label">Urutan tampil</label>
+			<input id="c-order" type="number" bind:value={sort_order} min="0" class="input-field" />
 		</div>
 		<div class="sm:col-span-2">
-			<label for="c-photo" class="block font-semibold mb-2">URL foto</label>
-			<input id="c-photo" type="url" bind:value={photo_url} placeholder="https://..." class="w-full min-h-[52px] px-4 rounded-lg border-2 border-ink bg-white" />
+			<label for="c-photo" class="field-label">URL foto</label>
+			<input id="c-photo" type="url" bind:value={photo_url} placeholder="https://..." class="input-field" />
 			{#if photo_url.trim()}
-				<div class="mt-3 w-32">
+				<div class="mt-3">
 					<Photo
 						src={photo_url.trim()}
 						alt="Pratinjau foto kandidat"
 						name={name || '?'}
-						imgClass="w-32 h-32 object-cover rounded-lg border-2 border-ink"
-						fallbackClass="w-32 h-32 rounded-lg border-2 border-ink bg-paper-deep"
-						initialClass="font-display text-4xl text-brand w-16 h-16 rounded-full border-2 border-brand flex items-center justify-center"
+						imgClass="w-32 h-32 object-cover rounded-xl border border-slate-200"
+						fallbackClass="w-32 h-32 rounded-xl border border-slate-200"
+						initialClass="text-4xl font-bold text-blue-700"
 					/>
 				</div>
 			{/if}
 		</div>
 		<div class="sm:col-span-2">
-			<label for="c-vision" class="block font-semibold mb-2">Visi</label>
-			<textarea id="c-vision" bind:value={vision} rows="2" maxlength="2000" class="w-full px-4 py-3 rounded-lg border-2 border-ink bg-white"></textarea>
+			<label for="c-vision" class="field-label">Visi</label>
+			<textarea id="c-vision" bind:value={vision} rows="2" maxlength="2000" class="input-field min-h-[80px] py-3"></textarea>
 		</div>
 		<div class="sm:col-span-2">
-			<label for="c-mission" class="block font-semibold mb-2">Misi</label>
-			<textarea id="c-mission" bind:value={mission} rows="4" maxlength="5000" class="w-full px-4 py-3 rounded-lg border-2 border-ink bg-white"></textarea>
+			<label for="c-mission" class="field-label">Misi</label>
+			<textarea id="c-mission" bind:value={mission} rows="4" maxlength="5000" class="input-field min-h-[120px] py-3"></textarea>
 		</div>
 		{#if formError}
-			<p role="alert" class="text-brand-deep font-semibold sm:col-span-2">{formError}</p>
+			<p role="alert" class="alert-error sm:col-span-2">{formError}</p>
 		{/if}
 		<div class="sm:col-span-2 flex flex-wrap gap-3">
-			<button type="submit" disabled={saving} class="min-h-[52px] px-8 rounded-lg bg-brand text-white font-semibold hover:bg-brand-deep disabled:opacity-50 transition-colors">
+			<button type="submit" disabled={saving} class="btn-primary">
 				{saving ? 'Menyimpan...' : editingId ? 'Simpan perubahan' : 'Tambah kandidat'}
 			</button>
 			{#if editingId}
-				<button type="button" onclick={resetForm} class="min-h-[52px] px-6 rounded-lg border-2 border-ink bg-white font-semibold hover:bg-paper-deep">
+				<button type="button" onclick={resetForm} class="btn-secondary">
 					Batal
 				</button>
 			{/if}
@@ -169,39 +170,41 @@
 	</form>
 </section>
 
-<h2 class="font-display text-2xl tracking-tight mb-4">Daftar kandidat</h2>
+<h2 class="section-title mb-4">Daftar kandidat</h2>
 {#if loading}
-	<p class="text-ink-soft">Memuat kandidat...</p>
+	<p class="text-slate-500">Memuat kandidat...</p>
 {:else if items.length === 0}
-	<div class="rounded-xl border border-line bg-paper-deep p-6 text-ink-soft">Belum ada kandidat.</div>
+	<div class="card-pad text-slate-500">Belum ada kandidat.</div>
 {:else}
 	<div class="grid gap-4 md:grid-cols-2">
 		{#each items as c (c.id)}
-			<article class="rounded-xl border border-line bg-white p-5 flex gap-4">
+			<article class="card-pad p-5 flex gap-4">
 				<Photo
 					src={c.photo_url}
 					alt="Foto {c.name}"
 					name={c.name}
-					imgClass="w-20 h-20 rounded-lg object-cover border border-line shrink-0"
-					fallbackClass="w-20 h-20 rounded-lg bg-paper-deep border border-line shrink-0"
-					initialClass="font-display text-3xl text-brand"
+					imgClass="w-20 h-20 rounded-xl object-cover border border-slate-200 shrink-0"
+					fallbackClass="w-20 h-20 rounded-xl border border-slate-200 shrink-0"
+					initialClass="text-3xl font-bold text-blue-700"
 				/>
 				<div class="flex-1 min-w-0">
-					<p class="font-semibold truncate">{c.name}</p>
-					<p class="text-sm text-ink-soft">Urutan {c.sort_order}</p>
-					<div class="flex gap-2 mt-3">
-						<button type="button" onclick={() => startEdit(c)} class="min-h-[44px] px-4 rounded-lg border-2 border-ink bg-white text-sm font-semibold hover:bg-paper-deep">
+					<p class="font-semibold text-slate-900 truncate">{c.name}</p>
+					<p class="text-sm text-slate-500">Urutan {c.sort_order}</p>
+					<div class="flex flex-wrap gap-2 mt-3">
+						<button type="button" onclick={() => startEdit(c)} class="btn-secondary btn-sm">
+							<Pencil class="h-4 w-4" />
 							Ubah
 						</button>
 						{#if confirmDelete === c.id}
-							<button type="button" onclick={() => remove(c.id)} class="min-h-[44px] px-4 rounded-lg bg-brand text-white text-sm font-semibold hover:bg-brand-deep">
+							<button type="button" onclick={() => remove(c.id)} class="btn-danger btn-sm">
 								Yakin, hapus
 							</button>
-							<button type="button" onclick={() => (confirmDelete = null)} class="min-h-[44px] px-4 rounded-lg border border-line bg-white text-sm hover:bg-paper-deep">
+							<button type="button" onclick={() => (confirmDelete = null)} class="btn-secondary btn-sm">
 								Batal
 							</button>
 						{:else}
-							<button type="button" onclick={() => (confirmDelete = c.id)} class="min-h-[44px] px-4 rounded-lg border border-line bg-white text-sm text-brand-deep hover:bg-paper-deep">
+							<button type="button" onclick={() => (confirmDelete = c.id)} class="btn-danger-outline">
+								<Trash2 class="h-4 w-4" />
 								Hapus
 							</button>
 						{/if}

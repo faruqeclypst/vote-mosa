@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import { Copy, Download, Trash2 } from '@lucide/svelte';
 
 	interface TokenItem {
 		id: string;
@@ -118,121 +119,123 @@
 	onMount(load);
 </script>
 
-<h1 class="font-display text-3xl tracking-tight mb-6">Token</h1>
+<h1 class="page-title mb-6">Token</h1>
 
 {#if error}
-	<p role="alert" class="text-brand-deep font-semibold mb-4">{error}</p>
+	<p role="alert" class="alert-error mb-4">{error}</p>
 {/if}
 
-<section aria-label="Buat token baru" class="rounded-2xl border-2 border-ink bg-white p-6 mb-10">
-	<h2 class="font-display text-xl mb-4">Buat token baru</h2>
+<section aria-label="Buat token baru" class="card-pad mb-10">
+	<h2 class="text-xl font-bold text-slate-900 mb-4">Buat token baru</h2>
 	<form onsubmit={generate} class="grid gap-4 sm:grid-cols-4 items-end">
 		<div>
-			<label for="t-count" class="block font-semibold mb-2">Jumlah</label>
-			<input id="t-count" type="number" bind:value={genCount} min="1" max="1000" required class="w-full min-h-[52px] px-4 rounded-lg border-2 border-ink bg-white" />
+			<label for="t-count" class="field-label">Jumlah</label>
+			<input id="t-count" type="number" bind:value={genCount} min="1" max="1000" required class="input-field" />
 		</div>
 		<div>
-			<label for="t-type" class="block font-semibold mb-2">Tipe</label>
-			<select id="t-type" bind:value={genType} class="w-full min-h-[52px] px-4 rounded-lg border-2 border-ink bg-white">
+			<label for="t-type" class="field-label">Tipe</label>
+			<select id="t-type" bind:value={genType} class="input-field">
 				<option value="student">Siswa (1 poin)</option>
 				<option value="teacher">Guru (2 poin)</option>
 			</select>
 		</div>
 		<div class="sm:col-span-2">
-			<label for="t-label" class="block font-semibold mb-2">Label (mis. X-1)</label>
-			<input id="t-label" type="text" bind:value={genLabel} maxlength="80" placeholder="Opsional" class="w-full min-h-[52px] px-4 rounded-lg border-2 border-ink bg-white" />
+			<label for="t-label" class="field-label">Label (mis. X-1)</label>
+			<input id="t-label" type="text" bind:value={genLabel} maxlength="80" placeholder="Opsional" class="input-field" />
 		</div>
 		<div class="sm:col-span-4">
-			<button type="submit" disabled={generating} class="min-h-[52px] px-8 rounded-lg bg-brand text-white font-semibold hover:bg-brand-deep disabled:opacity-50 transition-colors">
+			<button type="submit" disabled={generating} class="btn-primary">
 				{generating ? 'Membuat...' : 'Buat token'}
 			</button>
 		</div>
 	</form>
 	{#if genError}
-		<p role="alert" class="text-brand-deep font-semibold mt-4">{genError}</p>
+		<p role="alert" class="alert-error mt-4">{genError}</p>
 	{/if}
 	{#if newCodes.length > 0}
-		<div class="mt-6 rounded-xl border border-line bg-paper-deep p-5">
+		<div class="mt-6 rounded-xl border border-blue-200 bg-blue-50 p-5">
 			<div class="flex items-center justify-between mb-3">
-				<p class="font-semibold">{newCodes.length} token baru dibuat</p>
-				<button type="button" onclick={copyCodes} class="min-h-[44px] px-4 rounded-lg border-2 border-ink bg-white text-sm font-semibold hover:bg-white">
+				<p class="font-semibold text-slate-900">{newCodes.length} token baru dibuat</p>
+				<button type="button" onclick={copyCodes} class="btn-secondary btn-sm">
+					<Copy class="h-4 w-4" />
 					Salin semua
 				</button>
 			</div>
-			<p class="font-mono text-sm leading-relaxed break-words">{newCodes.join('  ')}</p>
-			<p class="text-sm text-ink-soft mt-3">Simpan daftar ini, kode tidak ditampilkan lagi setelah halaman dimuat ulang.</p>
+			<p class="font-mono text-sm leading-relaxed break-words text-slate-800">{newCodes.join('  ')}</p>
+			<p class="text-sm text-slate-500 mt-3">Simpan daftar ini, kode tidak ditampilkan lagi setelah halaman dimuat ulang.</p>
 		</div>
 	{/if}
 </section>
 
-<h2 class="font-display text-2xl tracking-tight mb-4">Daftar token</h2>
+<h2 class="section-title mb-4">Daftar token</h2>
 
-<form onsubmit={(e) => { e.preventDefault(); applyFilter(); }} class="grid gap-3 sm:grid-cols-4 mb-4">
+<form onsubmit={(e) => { e.preventDefault(); applyFilter(); }} class="card-pad p-4 grid gap-3 sm:grid-cols-4 mb-4">
 	<div>
-		<label for="f-type" class="block text-sm font-semibold mb-1">Tipe</label>
-		<select id="f-type" bind:value={filterType} onchange={applyFilter} class="w-full min-h-[48px] px-3 rounded-lg border-2 border-ink bg-white text-sm">
+		<label for="f-type" class="field-label">Tipe</label>
+		<select id="f-type" bind:value={filterType} onchange={applyFilter} class="input-field min-h-[48px] text-sm">
 			<option value="">Semua</option>
 			<option value="student">Siswa</option>
 			<option value="teacher">Guru</option>
 		</select>
 	</div>
 	<div>
-		<label for="f-used" class="block text-sm font-semibold mb-1">Status</label>
-		<select id="f-used" bind:value={filterUsed} onchange={applyFilter} class="w-full min-h-[48px] px-3 rounded-lg border-2 border-ink bg-white text-sm">
+		<label for="f-used" class="field-label">Status</label>
+		<select id="f-used" bind:value={filterUsed} onchange={applyFilter} class="input-field min-h-[48px] text-sm">
 			<option value="">Semua</option>
 			<option value="false">Belum dipakai</option>
 			<option value="true">Sudah dipakai</option>
 		</select>
 	</div>
 	<div class="sm:col-span-2">
-		<label for="f-q" class="block text-sm font-semibold mb-1">Cari kode atau label</label>
+		<label for="f-q" class="field-label">Cari kode atau label</label>
 		<div class="flex gap-2">
-			<input id="f-q" type="text" bind:value={search} placeholder="Kode atau label" class="flex-1 min-h-[48px] px-3 rounded-lg border-2 border-ink bg-white text-sm" />
-			<button type="submit" class="min-h-[48px] px-5 rounded-lg bg-ink text-paper text-sm font-semibold">Cari</button>
+			<input id="f-q" type="text" bind:value={search} placeholder="Kode atau label" class="input-field min-h-[48px] text-sm flex-1" />
+			<button type="submit" class="btn-primary btn-sm">Cari</button>
 		</div>
 	</div>
 </form>
 
 <div class="flex items-center justify-between mb-4">
-	<p class="text-sm text-ink-soft">{total} token</p>
-	<a href={exportUrl()} class="min-h-[44px] inline-flex items-center px-4 rounded-lg border-2 border-ink bg-white text-sm font-semibold hover:bg-paper-deep">
+	<p class="text-sm text-slate-500">{total} token</p>
+	<a href={exportUrl()} class="btn-secondary btn-sm">
+		<Download class="h-4 w-4" />
 		Unduh CSV
 	</a>
 </div>
 
 {#if loading}
-	<p class="text-ink-soft">Memuat token...</p>
+	<p class="text-slate-500">Memuat token...</p>
 {:else if items.length === 0}
-	<div class="rounded-xl border border-line bg-paper-deep p-6 text-ink-soft">Tidak ada token yang cocok.</div>
+	<div class="card-pad text-slate-500">Tidak ada token yang cocok.</div>
 {:else}
-	<div class="overflow-x-auto rounded-xl border border-line">
-		<table class="w-full text-sm bg-white">
+	<div class="table-wrap">
+		<table class="table">
 			<thead>
-				<tr class="border-b border-line text-left">
-					<th scope="col" class="px-4 py-3 font-semibold">Kode</th>
-					<th scope="col" class="px-4 py-3 font-semibold">Tipe</th>
-					<th scope="col" class="px-4 py-3 font-semibold">Label</th>
-					<th scope="col" class="px-4 py-3 font-semibold">Status</th>
-					<th scope="col" class="px-4 py-3 font-semibold"><span class="sr-only">Aksi</span></th>
+				<tr>
+					<th scope="col">Kode</th>
+					<th scope="col">Tipe</th>
+					<th scope="col">Label</th>
+					<th scope="col">Status</th>
+					<th scope="col"><span class="sr-only">Aksi</span></th>
 				</tr>
 			</thead>
 			<tbody>
 				{#each items as t (t.id)}
-					<tr class="border-b border-line last:border-0">
-						<td class="px-4 py-3 font-mono font-semibold tracking-widest">{t.code}</td>
-						<td class="px-4 py-3">{t.type === 'teacher' ? 'Guru' : 'Siswa'}</td>
-						<td class="px-4 py-3 text-ink-soft">{t.label ?? '-'}</td>
-						<td class="px-4 py-3">
+					<tr>
+						<td class="font-mono font-bold tracking-widest text-slate-900">{t.code}</td>
+						<td>{t.type === 'teacher' ? 'Guru' : 'Siswa'}</td>
+						<td class="text-slate-500">{t.label ?? '-'}</td>
+						<td>
 							{#if t.is_used}
-								<span class="text-ink-soft">Dipakai</span>
+								<span class="badge-slate">Dipakai</span>
 							{:else}
-								<span class="text-brand font-semibold">Aktif</span>
+								<span class="badge-emerald">Aktif</span>
 							{/if}
 						</td>
-						<td class="px-4 py-3 text-right">
+						<td class="text-right">
 							{#if !t.is_used}
-								<button type="button" onclick={() => remove(t.id)} class="min-h-[40px] px-3 rounded-lg border border-line text-sm text-brand-deep hover:bg-paper-deep">
-									Hapus
+								<button type="button" onclick={() => remove(t.id)} class="btn-danger-outline" aria-label="Hapus token {t.code}">
+									<Trash2 class="h-4 w-4" />
 								</button>
 							{/if}
 						</td>
@@ -242,11 +245,11 @@
 		</table>
 	</div>
 	<div class="flex items-center justify-between mt-4">
-		<button type="button" onclick={() => { page = Math.max(0, page - 1); load(); }} disabled={page === 0} class="min-h-[44px] px-4 rounded-lg border-2 border-ink bg-white text-sm font-semibold disabled:opacity-40">
+		<button type="button" onclick={() => { page = Math.max(0, page - 1); load(); }} disabled={page === 0} class="btn-secondary btn-sm">
 			Sebelumnya
 		</button>
-		<p class="text-sm text-ink-soft">Halaman {page + 1} dari {totalPages}</p>
-		<button type="button" onclick={() => { page = Math.min(totalPages - 1, page + 1); load(); }} disabled={page >= totalPages - 1} class="min-h-[44px] px-4 rounded-lg border-2 border-ink bg-white text-sm font-semibold disabled:opacity-40">
+		<p class="text-sm text-slate-500">Halaman {page + 1} dari {totalPages}</p>
+		<button type="button" onclick={() => { page = Math.min(totalPages - 1, page + 1); load(); }} disabled={page >= totalPages - 1} class="btn-secondary btn-sm">
 			Berikutnya
 		</button>
 	</div>

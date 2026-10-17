@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { page } from '$app/state';
 	import { goto } from '$app/navigation';
+	import { Vote, LogOut } from '@lucide/svelte';
 	import StatsTab from '$lib/components/admin/StatsTab.svelte';
 	import CandidatesTab from '$lib/components/admin/CandidatesTab.svelte';
 	import TokensTab from '$lib/components/admin/TokensTab.svelte';
@@ -20,9 +21,10 @@
 	] as const;
 
 	const isSuper = $derived(data.admin?.role === 'super');
+	const allTabs = $derived(isSuper ? [...tabs, { id: 'admin', label: 'Kelola Admin' }] : [...tabs]);
 	const active = $derived(() => {
 		const t = page.url.searchParams.get('tab') ?? 'ringkasan';
-		const ids = isSuper ? [...tabs.map((x) => x.id), 'admin'] : tabs.map((x) => x.id);
+		const ids = allTabs.map((x) => x.id);
 		return (ids as string[]).includes(t) ? t : 'ringkasan';
 	});
 
@@ -42,60 +44,47 @@
 	<title>Dashboard Admin - Pemilihan OSIS</title>
 </svelte:head>
 
-<div class="min-h-dvh flex flex-col">
-	<header class="border-b-2 border-ink bg-paper sticky top-0 z-20">
-		<div class="mx-auto max-w-6xl px-5 py-3 flex items-center justify-between gap-4">
-			<div>
-				<p class="font-display text-lg tracking-tight leading-none">Panel Panitia</p>
-				<p class="text-xs text-ink-soft mt-1">
-					{data.admin?.name} ({data.admin?.role === 'super' ? 'super admin' : 'admin'})
-				</p>
+<div class="min-h-dvh flex flex-col bg-slate-50">
+	<header class="bg-white border-b border-slate-200 sticky top-0 z-20">
+		<div class="mx-auto max-w-6xl px-4 sm:px-6 py-3 flex items-center justify-between gap-4">
+			<div class="flex items-center gap-2.5">
+				<span class="bg-blue-600 rounded-xl p-2" aria-hidden="true">
+					<Vote class="h-5 w-5 text-white" />
+				</span>
+				<div>
+					<p class="font-extrabold tracking-tight text-slate-900 leading-none">Panel Panitia</p>
+					<p class="text-xs text-slate-500 mt-1">
+						{data.admin?.name} ({data.admin?.role === 'super' ? 'super admin' : 'admin'})
+					</p>
+				</div>
 			</div>
-			<div class="flex items-center gap-3">
-				<a href="/" class="text-sm underline underline-offset-4 text-ink-soft hover:text-ink">Lihat situs</a>
-				<button
-					type="button"
-					onclick={logout}
-					class="min-h-[44px] px-4 rounded-lg border-2 border-ink bg-white text-sm font-semibold hover:bg-paper-deep"
-				>
+			<div class="flex items-center gap-2">
+				<a href="/" class="btn-secondary btn-sm">Lihat situs</a>
+				<button type="button" onclick={logout} class="btn-secondary btn-sm">
+					<LogOut class="h-4 w-4" />
 					Keluar
 				</button>
 			</div>
 		</div>
-		<nav aria-label="Tab dashboard" class="mx-auto max-w-6xl px-5">
+		<nav aria-label="Tab dashboard" class="mx-auto max-w-6xl px-4 sm:px-6">
 			<div class="flex gap-1 overflow-x-auto" role="tablist">
-				{#each tabs as t}
+				{#each allTabs as t}
 					<button
 						type="button"
 						role="tab"
 						aria-selected={active() === t.id}
 						onclick={() => selectTab(t.id)}
-						class="min-h-[48px] px-4 text-sm font-semibold whitespace-nowrap border-b-[3px] -mb-px transition-colors {active() === t.id
-							? 'border-brand text-brand'
-							: 'border-transparent text-ink-soft hover:text-ink'}"
+						class={active() === t.id ? 'tab-btn-active' : 'tab-btn'}
 					>
 						{t.label}
 					</button>
 				{/each}
-				{#if isSuper}
-					<button
-						type="button"
-						role="tab"
-						aria-selected={active() === 'admin'}
-						onclick={() => selectTab('admin')}
-						class="min-h-[48px] px-4 text-sm font-semibold whitespace-nowrap border-b-[3px] -mb-px transition-colors {active() === 'admin'
-							? 'border-brand text-brand'
-							: 'border-transparent text-ink-soft hover:text-ink'}"
-					>
-						Kelola Admin
-					</button>
-				{/if}
 			</div>
 		</nav>
 	</header>
 
 	<main class="flex-1">
-		<div class="mx-auto max-w-6xl px-5 py-8">
+		<div class="mx-auto max-w-6xl px-4 sm:px-6 py-8">
 			{#if active() === 'ringkasan'}
 				<StatsTab />
 			{:else if active() === 'kandidat'}

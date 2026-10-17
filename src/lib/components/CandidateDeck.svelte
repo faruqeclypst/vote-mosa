@@ -83,7 +83,7 @@
 </script>
 
 <div class="w-full max-w-sm mx-auto">
-	<p class="text-sm text-ink-soft mb-3 text-center" aria-live="polite">
+	<p class="text-sm text-slate-500 mb-3 text-center" aria-live="polite">
 		{#if top}
 			Kandidat {viewedCount} dari {candidates.length}
 		{:else if skipped.length > 0}
@@ -98,7 +98,7 @@
 				{@const isTop = idx === topIndex}
 				<!-- svelte-ignore a11y_no_static_element_interactions: kartu swipe custom; padanan keyboard penuh tersedia lewat tombol Lewati/Pilih di bawah deck -->
 				<div
-					class="absolute inset-0 rounded-2xl border-2 border-ink bg-white overflow-hidden"
+					class="absolute inset-0 rounded-2xl border border-slate-200 bg-white overflow-hidden shadow-lg"
 					style={isTop
 						? `z-index: 10; transform: translate(${flying ? (flying === 'right' ? 520 : -520) : dx}px, ${dy}px) rotate(${flying ? (flying === 'right' ? 16 : -16) : dx / 14}deg); ${dragging || flying ? '' : 'transition: transform 0.22s ease;'}`
 						: `z-index: ${5 - depth}; transform: translateY(${depth * 10}px) scale(${1 - depth * 0.045});`}
@@ -110,14 +110,14 @@
 					{#if isTop}
 						<div
 							aria-hidden="true"
-							class="absolute top-4 left-4 px-3 py-1 rounded-md border-2 border-brand text-brand font-bold uppercase tracking-widest text-sm bg-white/95 pointer-events-none"
+							class="absolute top-4 left-4 px-3 py-1 rounded-lg border-2 border-blue-600 text-blue-700 font-bold uppercase tracking-widest text-sm bg-white/95 pointer-events-none"
 							style="opacity: {Math.min(1, Math.max(0, dx / 80))}; transform: rotate(-12deg);"
 						>
 							Pilih
 						</div>
 						<div
 							aria-hidden="true"
-							class="absolute top-4 right-4 px-3 py-1 rounded-md border-2 border-ink-soft text-ink-soft font-bold uppercase tracking-widest text-sm bg-white/95 pointer-events-none"
+							class="absolute top-4 right-4 px-3 py-1 rounded-lg border-2 border-slate-400 text-slate-500 font-bold uppercase tracking-widest text-sm bg-white/95 pointer-events-none"
 							style="opacity: {Math.min(1, Math.max(0, -dx / 80))}; transform: rotate(12deg);"
 						>
 							Lewati
@@ -129,26 +129,26 @@
 							src={candidates[idx].photo_url}
 							alt="Foto {candidates[idx].name}"
 							name={candidates[idx].name}
-							imgClass="w-full h-52 sm:h-60 object-cover border-b-2 border-ink"
-							fallbackClass="w-full h-52 sm:h-60 bg-paper-deep border-b-2 border-ink"
+							imgClass="w-full h-52 sm:h-60 object-cover border-b border-slate-200"
+							fallbackClass="w-full h-52 sm:h-60 border-b border-slate-200"
 						/>
 						<div class="p-5 overflow-y-auto flex-1">
 							<div class="flex items-center gap-3 mb-2">
 								<span
-									class="font-display text-lg w-9 h-9 shrink-0 rounded-full bg-ink text-paper flex items-center justify-center"
+									class="text-base font-bold w-9 h-9 shrink-0 rounded-full bg-blue-600 text-white flex items-center justify-center"
 									aria-label="Nomor urut {candidateNumber(idx)}"
 								>
 									{candidateNumber(idx)}
 								</span>
-								<h3 class="font-display text-2xl tracking-tight">{candidates[idx].name}</h3>
+								<h3 class="text-xl font-bold tracking-tight text-slate-900">{candidates[idx].name}</h3>
 							</div>
 							{#if candidates[idx].vision}
-								<p class="text-xs font-semibold uppercase tracking-widest text-brand mt-4 mb-1">Visi</p>
-								<p>{candidates[idx].vision}</p>
+								<p class="text-xs font-bold uppercase tracking-widest text-blue-700 mt-4 mb-1">Visi</p>
+								<p class="text-slate-700">{candidates[idx].vision}</p>
 							{/if}
 							{#if candidates[idx].mission}
-								<p class="text-xs font-semibold uppercase tracking-widest text-brand mt-4 mb-1">Misi</p>
-								<p class="whitespace-pre-line">{candidates[idx].mission}</p>
+								<p class="text-xs font-bold uppercase tracking-widest text-blue-700 mt-4 mb-1">Misi</p>
+								<p class="whitespace-pre-line text-slate-700">{candidates[idx].mission}</p>
 							{/if}
 						</div>
 					</div>
@@ -161,7 +161,7 @@
 				type="button"
 				onclick={() => commit('left')}
 				disabled={animating}
-				class="min-h-[56px] px-8 rounded-xl border-2 border-ink bg-white font-semibold hover:bg-paper-deep disabled:opacity-50 transition-colors"
+				class="btn-secondary flex-1"
 			>
 				Lewati
 			</button>
@@ -169,20 +169,16 @@
 				type="button"
 				onclick={() => commit('right')}
 				disabled={animating}
-				class="min-h-[56px] px-8 rounded-xl border-2 border-brand bg-brand text-white font-semibold hover:bg-brand-deep disabled:opacity-50 transition-colors"
+				class="btn-primary flex-1"
 			>
 				Pilih
 			</button>
 		</div>
 	{:else if skipped.length > 0}
-		<div class="rounded-2xl border-2 border-ink bg-white p-8 text-center">
-			<p class="font-display text-2xl mb-2">Belum ada pilihan</p>
-			<p class="text-ink-soft mb-6">Kamu melewati semua kandidat. Lihat lagi dari awal untuk memilih.</p>
-			<button
-				type="button"
-				onclick={reviewSkipped}
-				class="min-h-[52px] px-8 rounded-lg bg-ink text-paper font-semibold hover:opacity-90 transition-opacity"
-			>
+		<div class="card-pad p-8 text-center">
+			<p class="text-xl font-bold text-slate-900 mb-2">Belum ada pilihan</p>
+			<p class="text-slate-600 mb-6">Kamu melewati semua kandidat. Lihat lagi dari awal untuk memilih.</p>
+			<button type="button" onclick={reviewSkipped} class="btn-primary">
 				Lihat lagi dari awal
 			</button>
 		</div>
