@@ -88,7 +88,7 @@ body {
 	}
 
 	.tokenbox {
-		@apply flex-1 h-[54px] rounded-md bg-white text-center text-xl font-extrabold text-flag uppercase caret-flag;
+		@apply flex-1 min-w-0 h-[54px] rounded-md bg-white text-center text-xl font-extrabold text-flag uppercase caret-flag;
 		border: 2px dashed var(--color-line);
 		transition: border-color 0.15s ease;
 	}
