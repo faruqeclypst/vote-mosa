@@ -1,27 +1,29 @@
 import type { PageServerLoad } from './$types';
-import { db, type Candidate } from '$lib/db';
+import { db, ELECTIONS, type Candidate, type Election } from '$lib/db';
 
 export const load: PageServerLoad = async () => {
 	try {
 		const sql = db();
-		const settingsRows = await sql`SELECT key, value FROM settings WHERE key IN ('voting_open', 'election_title', 'school_name')`;
+		const settingsRows = await sql`SELECT key, value FROM settings WHERE key IN ('osis_open', 'mpk_open', 'election_title', 'school_name')`;
 		const settings: Record<string, string> = {};
 		for (const r of settingsRows as unknown as { key: string; value: string }[]) settings[r.key] = r.value;
 
-		const votingOpen = settings.voting_open === 'true';
+		const elections = ELECTIONS.filter((e: Election) => settings[`${e}_open`] === 'true');
 		let candidates: Candidate[] = [];
-		if (votingOpen) {
+		if (elections.length > 0) {
 			const rows = await sql`
-				SELECT id, name, photo_url, vision, mission, sort_order
+				SELECT id, name, photo_url, vision, mission, election, sort_order
 				FROM candidates
-				ORDER BY sort_order ASC, created_at ASC
+				WHERE election IN ${sql(elections)}
+				ORDER BY election ASC, sort_order ASC, created_at ASC
 			`;
 			candidates = rows as unknown as Candidate[];
 		}
 		return {
 			title: settings.election_title ?? 'Pemilihan Ketua OSIS',
 			school: settings.school_name ?? 'SMAN Modal Bangsa',
-			votingOpen,
+			votingOpen: elections.length > 0,
+			elections,
 			candidates
 		};
 	} catch {
@@ -29,6 +31,7 @@ export const load: PageServerLoad = async () => {
 			title: 'Pemilihan Ketua OSIS',
 			school: 'SMAN Modal Bangsa',
 			votingOpen: false,
+			elections: [] as Election[],
 			candidates: [] as Candidate[]
 		};
 	}

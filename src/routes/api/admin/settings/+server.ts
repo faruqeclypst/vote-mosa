@@ -3,7 +3,8 @@ import type { RequestHandler } from './$types';
 import { db } from '$lib/db';
 import { readJson, requireAdmin } from '$lib/api';
 
-const ALLOWED = ['voting_open', 'election_title', 'school_name'] as const;
+const ALLOWED = ['osis_open', 'mpk_open', 'election_title', 'school_name'] as const;
+const OPEN_LABEL: Record<string, string> = { osis_open: 'Pemilihan OSIS', mpk_open: 'Pemilihan MPK' };
 
 export const GET: RequestHandler = async (event) => {
 	const auth = requireAdmin(event);
@@ -26,13 +27,13 @@ export const PUT: RequestHandler = async (event) => {
 		const v = parsed.body[key];
 		if (v === undefined) continue;
 		if (typeof v !== 'string') return json({ error: `Nilai ${key} tidak valid.` }, { status: 400 });
-		if (key === 'voting_open' && v !== 'true' && v !== 'false') {
-			return json({ error: 'voting_open harus true atau false.' }, { status: 400 });
+		if ((key === 'osis_open' || key === 'mpk_open') && v !== 'true' && v !== 'false') {
+			return json({ error: `${OPEN_LABEL[key]} harus true atau false.` }, { status: 400 });
 		}
 		if ((key === 'election_title' || key === 'school_name') && (v.trim().length < 2 || v.length > 120)) {
 			return json({ error: `Nilai ${key} minimal 2 karakter.` }, { status: 400 });
 		}
-		updates.push({ key, value: key === 'voting_open' ? v : v.trim() });
+		updates.push({ key, value: key === 'election_title' || key === 'school_name' ? v.trim() : v });
 	}
 	if (updates.length === 0) return json({ error: 'Tidak ada perubahan.' }, { status: 400 });
 

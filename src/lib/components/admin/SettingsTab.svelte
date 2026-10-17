@@ -1,7 +1,8 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 
-	let votingOpen = $state(true);
+	let osisOpen = $state(true);
+	let mpkOpen = $state(false);
 	let title = $state('');
 	let school = $state('');
 	let error = $state('');
@@ -15,7 +16,8 @@
 			const res = await fetch('/api/admin/settings');
 			if (!res.ok) throw new Error();
 			const s = (await res.json()).settings as Record<string, string>;
-			votingOpen = s.voting_open === 'true';
+			osisOpen = s.osis_open === 'true';
+			mpkOpen = s.mpk_open === 'true';
 			title = s.election_title ?? '';
 			school = s.school_name ?? '';
 		} catch {
@@ -36,7 +38,8 @@
 				method: 'PUT',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({
-					voting_open: votingOpen ? 'true' : 'false',
+					osis_open: osisOpen ? 'true' : 'false',
+					mpk_open: mpkOpen ? 'true' : 'false',
 					election_title: title.trim(),
 					school_name: school.trim()
 				})
@@ -68,16 +71,48 @@
 {:else}
 	<form onsubmit={save} class="max-w-xl space-y-6">
 		<fieldset class="recap !p-6">
-			<legend class="text-lg font-extrabold px-1">Status voting</legend>
-			<label class="flex items-start gap-3 cursor-pointer">
-				<input type="checkbox" bind:checked={votingOpen} class="mt-1 w-6 h-6 accent-[#c8102e]" />
-				<span>
-					<span class="font-extrabold block">Voting dibuka</span>
-					<span class="text-sm text-muted">
-						Jika dimatikan, pemilih melihat pesan voting ditutup dan tidak bisa mengirim suara.
+			<legend class="text-lg font-extrabold px-1">Status pemilihan</legend>
+			<div class="space-y-5">
+				<div class="flex items-center justify-between gap-4">
+					<span>
+						<span class="font-extrabold block">Pemilihan OSIS</span>
+						<span class="text-sm text-muted">
+							Surat suara ketua OSIS dibuka untuk pemilih.
+						</span>
 					</span>
-				</span>
-			</label>
+					<button
+						type="button"
+						role="switch"
+						aria-checked={osisOpen}
+						aria-label="Buka atau tutup pemilihan OSIS"
+						onclick={() => (osisOpen = !osisOpen)}
+						class="switch"
+					>
+						<span class="switch-knob" aria-hidden="true"></span>
+					</button>
+				</div>
+				<div class="flex items-center justify-between gap-4">
+					<span>
+						<span class="font-extrabold block">Pemilihan MPK</span>
+						<span class="text-sm text-muted">
+							Surat suara ketua MPK dibuka untuk pemilih.
+						</span>
+					</span>
+					<button
+						type="button"
+						role="switch"
+						aria-checked={mpkOpen}
+						aria-label="Buka atau tutup pemilihan MPK"
+						onclick={() => (mpkOpen = !mpkOpen)}
+						class="switch"
+					>
+						<span class="switch-knob" aria-hidden="true"></span>
+					</button>
+				</div>
+				<p class="text-sm text-muted !mt-4">
+					Satu token berlaku untuk setiap pemilihan yang dibuka — satu suara ketua OSIS dan satu suara ketua MPK.
+				</p>
+			</div>
 		</fieldset>
 
 		<fieldset class="recap !p-6 space-y-4">

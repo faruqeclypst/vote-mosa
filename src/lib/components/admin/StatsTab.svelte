@@ -21,12 +21,13 @@
 	let stats = $state<Stats | null>(null);
 	let error = $state('');
 	let loading = $state(true);
+	let election = $state<'osis' | 'mpk'>('osis');
 
 	async function load() {
 		loading = true;
 		error = '';
 		try {
-			const res = await fetch('/api/admin/stats');
+			const res = await fetch(`/api/admin/stats?election=${election}`);
 			if (!res.ok) throw new Error();
 			stats = await res.json();
 		} catch {
@@ -34,6 +35,13 @@
 		} finally {
 			loading = false;
 		}
+	}
+
+	function selectElection(e: 'osis' | 'mpk') {
+		if (election === e) return;
+		election = e;
+		stats = null;
+		load();
 	}
 
 	onMount(load);
@@ -44,10 +52,25 @@
 		<span class="lbl !mb-1">REKAPITULASI</span>
 		<h1 class="section-head">Ringkasan</h1>
 	</div>
-	<button type="button" onclick={load} class="btn-line btn-sm">
-		<RefreshCw class="h-4 w-4" />
-		Muat ulang
-	</button>
+	<div class="flex items-center gap-3">
+		<div class="flex gap-1" role="tablist" aria-label="Pilih pemilihan">
+			{#each [{ id: 'osis', label: 'OSIS' }, { id: 'mpk', label: 'MPK' }] as t}
+				<button
+					type="button"
+					role="tab"
+					aria-selected={election === t.id}
+					onclick={() => selectElection(t.id as 'osis' | 'mpk')}
+					class={election === t.id ? 'tab-active' : 'tab'}
+				>
+					{t.label}
+				</button>
+			{/each}
+		</div>
+		<button type="button" onclick={load} class="btn-line btn-sm">
+			<RefreshCw class="h-4 w-4" />
+			Muat ulang
+		</button>
+	</div>
 </div>
 
 {#if loading}

@@ -31,11 +31,12 @@
 	let loading = $state(true);
 	let lastUpdated = $state<Date | null>(null);
 	let timer: ReturnType<typeof setInterval> | null = null;
+	let election = $state<'osis' | 'mpk'>('osis');
 
 	async function load(silent = false) {
 		if (!silent) loading = true;
 		try {
-			const res = await fetch('/api/admin/results');
+			const res = await fetch(`/api/admin/results?election=${election}`);
 			if (!res.ok) throw new Error();
 			data = await res.json();
 			lastUpdated = new Date();
@@ -45,6 +46,13 @@
 		} finally {
 			loading = false;
 		}
+	}
+
+	function selectElection(e: 'osis' | 'mpk') {
+		if (election === e) return;
+		election = e;
+		data = null;
+		load();
 	}
 
 	const maxPoints = $derived(Math.max(1, ...(data?.perCandidate.map((c) => c.points) ?? [1])));
@@ -86,6 +94,19 @@
 		<h1 class="section-head">Hasil</h1>
 	</div>
 	<div class="flex items-center gap-3">
+		<div class="flex gap-1" role="tablist" aria-label="Pilih pemilihan">
+			{#each [{ id: 'osis', label: 'OSIS' }, { id: 'mpk', label: 'MPK' }] as t}
+				<button
+					type="button"
+					role="tab"
+					aria-selected={election === t.id}
+					onclick={() => selectElection(t.id as 'osis' | 'mpk')}
+					class={election === t.id ? 'tab-active' : 'tab'}
+				>
+					{t.label}
+				</button>
+			{/each}
+		</div>
 		{#if lastUpdated}
 			<p class="text-xs text-faint hidden sm:block">
 				Diperbarui {lastUpdated.toLocaleTimeString('id-ID')} (otomatis tiap 5 detik)

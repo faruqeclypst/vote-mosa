@@ -122,6 +122,10 @@
 <div class="mb-6">
 	<span class="lbl !mb-1">SURAT KUASA MEMILIH</span>
 	<h1 class="section-head">Token</h1>
+	<p class="text-sm text-muted mt-2 max-w-xl">
+		Satu token berlaku untuk setiap pemilihan yang dibuka — satu suara ketua OSIS dan satu suara ketua MPK.
+		Status "terpakai" berarti token sudah dipakai di minimal satu pemilihan.
+	</p>
 </div>
 
 {#if error}

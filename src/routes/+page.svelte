@@ -1,5 +1,6 @@
 <script lang="ts">
 	import Photo from '$lib/components/Photo.svelte';
+	import { ELECTION_LABEL } from '$lib/elections';
 	import type { Candidate } from '$lib/db';
 	import type { PageData } from './$types';
 
@@ -14,15 +15,37 @@
 	let voterType = $state<'student' | 'teacher' | null>(null);
 	let lastChecked = $state('');
 
-	let pickedId = $state<string | null>(null);
+	// Pemilihan yang bisa dipilih token ini (dari /api/vote/validate)
+	let availableElections = $state<string[]>([]);
+	// Coblosan per pemilihan: { osis: candidateId|null, mpk: ... }
+	let picks = $state<Record<string, string | null>>({});
+
 	let showConfirm = $state(false);
 	let submitting = $state(false);
 	let submitError = $state('');
 	let done = $state(false);
 
 	const code = $derived(digits.join(''));
-	const picked: Candidate | null = $derived(data.candidates.find((c) => c.id === pickedId) ?? null);
-	const canSubmit = $derived(tokenState === 'valid' && pickedId !== null && !done);
+
+	const candidatesByElection = $derived.by<Record<string, Candidate[]>>(() => {
+		const out: Record<string, Candidate[]> = {};
+		for (const c of data.candidates) (out[c.election] ??= []).push(c);
+		return out;
+	});
+
+	// Pemilihan yang tampil di surat suara: dibuka, token belum memakainya, ada kandidatnya
+	const votableElections = $derived(
+		availableElections.filter((e) => (candidatesByElection[e] ?? []).length > 0)
+	);
+	const missingElections = $derived(votableElections.filter((e) => !picks[e]));
+	const canSubmit = $derived(
+		tokenState === 'valid' && votableElections.length > 0 && missingElections.length === 0 && !done
+	);
+
+	function candidateName(election: string): string {
+		const id = picks[election];
+		return candidatesByElection[election]?.find((c) => c.id === id)?.name ?? '';
+	}
 
 	function resetTokenState() {
 		if (tokenState !== 'idle') {
@@ -30,6 +53,8 @@
 			tokenError = '';
 			voterType = null;
 		}
+		availableElections = [];
+		picks = {};
 	}
 
 	function onDigitInput(i: number, e: Event) {
@@ -88,6 +113,10 @@
 				return;
 			}
 			voterType = body.type;
+			availableElections = Array.isArray(body.elections)
+				? body.elections.filter((e: unknown) => e === 'osis' || e === 'mpk')
+				: [];
+			picks = {};
 			tokenState = 'valid';
 		} catch {
 			tokenState = 'error';
@@ -95,20 +124,24 @@
 		}
 	}
 
-	function togglePick(id: string) {
+	function togglePick(election: string, id: string) {
 		if (tokenState !== 'valid' || done) return;
-		pickedId = pickedId === id ? null : id;
+		picks[election] = picks[election] === id ? null : id;
 	}
 
 	async function submitVote() {
-		if (submitting || !pickedId) return;
+		if (submitting || !canSubmit) return;
 		submitting = true;
 		submitError = '';
 		try {
+			const picksBody: Record<string, string> = {};
+			for (const e of votableElections) {
+				if (picks[e]) picksBody[e] = picks[e] as string;
+			}
 			const res = await fetch('/api/vote/submit', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ code, candidateId: pickedId })
+				body: JSON.stringify({ code, picks: picksBody })
 			});
 			const body = await res.json();
 			if (!res.ok) {
@@ -140,7 +173,8 @@
 	function backToBallot() {
 		done = false;
 		digits = ['', '', '', '', ''];
-		pickedId = null;
+		availableElections = [];
+		picks = {};
 		showConfirm = false;
 		submitError = '';
 		tokenState = 'idle';
@@ -186,7 +220,7 @@
 			<div class="text-center py-8">
 				<span class="stamp-big">SAH</span>
 				<h2 class="text-2xl font-extrabold mt-8 mb-2">Suaramu tercatat</h2>
-				<p class="hint !mb-0">Terima kasih sudah berpartisipasi.<br />Satu token, satu suara.</p>
+				<p class="hint !mb-0">Terima kasih sudah berpartisipasi.<br />Satu token, satu suara di setiap pemilihan.</p>
 				<p class="mt-4 text-sm text-faint">Kembali ke surat suara dalam {countdown} detik…</p>
 			</div>
 		{:else if !data.votingOpen}
@@ -195,7 +229,7 @@
 				<h1 class="kop-title">{data.title}</h1>
 			</div>
 			<div class="rule-double"></div>
-			<h2 class="text-xl font-extrabold mb-2">Voting sedang ditutup</h2>
+			<h2 class="text-xl font-extrabold mb-2">Pemilihan sedang ditutup</h2>
 			<p class="hint">Panitia belum membuka masa pemilihan. Silakan kembali lagi nanti.</p>
 		{:else}
 			<!-- Kop surat suara -->
@@ -213,7 +247,7 @@
 			<!-- Kode token -->
 			<section aria-label="Kode token">
 				<span class="lbl">KODE TOKEN</span>
-				<p class="hint">Masukkan 5 karakter token yang dibagikan panitia. Satu token untuk satu suara.</p>
+				<p class="hint">Masukkan 5 karakter token yang dibagikan panitia. Satu token berlaku untuk setiap pemilihan yang dibuka.</p>
 				<div class="tokenboxes" role="group" aria-label="Kode token, 5 karakter">
 					{#each digits as d, i}
 						<input
@@ -237,63 +271,71 @@
 					<p role="status" class="hint !text-ink font-semibold">Memeriksa token...</p>
 				{:else if tokenState === 'valid'}
 					<p role="status" class="hint !text-ink font-bold">
-						Token valid{voterType === 'teacher' ? ' — suaramu bernilai 2 poin.' : ' — suaramu bernilai 1 poin.'}
+						Token valid — setiap pilihanmu bernilai {voterType === 'teacher' ? '2' : '1'} poin.
 					</p>
 				{:else if tokenState === 'error'}
 					<p role="alert" class="alert-error mb-6">{tokenError}</p>
 				{/if}
 			</section>
 
-			<!-- Surat suara -->
-			<section aria-label="Surat suara" class="mt-2">
-				<span class="lbl">SURAT SUARA</span>
-				<p class="hint">Ketuk satu kandidat untuk mencoblos. Kamu bisa mengganti pilihan sebelum disahkan.</p>
+			<!-- Surat suara per pemilihan -->
+			{#if tokenState === 'valid'}
+				<section aria-label="Surat suara" class="mt-2">
+					{#each votableElections as election, ei}
+						<div class={ei > 0 ? 'mt-8' : ''}>
+							<span class="lbl">SURAT SUARA — {ELECTION_LABEL[election as keyof typeof ELECTION_LABEL].toUpperCase()}</span>
+							<p class="hint">Ketuk satu kandidat untuk mencoblos. Kamu bisa mengganti pilihan sebelum disahkan.</p>
+							<div>
+								{#each candidatesByElection[election] as c, i (c.id)}
+									<button
+										type="button"
+										onclick={() => togglePick(election, c.id)}
+										class="ballot-row {picks[election] === c.id ? 'picked' : ''}"
+										aria-pressed={picks[election] === c.id}
+									>
+										<span class="num-circle" aria-hidden="true">{i + 1}</span>
+										<Photo
+											src={c.photo_url}
+											alt="Foto {c.name}"
+											name={c.name}
+											imgClass="w-14 h-14 rounded-md object-cover shrink-0"
+											fallbackClass="w-14 h-14 rounded-md shrink-0"
+											initialClass="text-xl font-extrabold text-flag"
+										/>
+										<span class="flex-1 min-w-0 text-left">
+											<span class="block text-[17px] font-extrabold leading-snug">{c.name}</span>
+											{#if visionOf(c)}
+												<span class="block text-[13px] text-muted leading-snug mt-0.5">{visionOf(c)}</span>
+											{/if}
+										</span>
+										{#if picks[election] === c.id}
+											<span class="stamp" aria-hidden="true">COBLOS</span>
+										{/if}
+									</button>
+								{/each}
+							</div>
+						</div>
+					{/each}
+					{#if votableElections.length === 0}
+						<p class="hint">Belum ada kandidat yang bisa dipilih dengan token ini.</p>
+					{/if}
 
-				{#if data.candidates.length === 0}
-					<p class="hint">Belum ada kandidat. Panitia belum mendaftarkan kandidat.</p>
-				{:else}
-					<div>
-						{#each data.candidates as c, i (c.id)}
-							<button
-								type="button"
-								disabled={tokenState !== 'valid'}
-								onclick={() => togglePick(c.id)}
-								class="ballot-row {pickedId === c.id ? 'picked' : ''}"
-								aria-pressed={pickedId === c.id}
-							>
-								<span class="num-circle" aria-hidden="true">{i + 1}</span>
-								<Photo
-									src={c.photo_url}
-									alt="Foto {c.name}"
-									name={c.name}
-									imgClass="w-14 h-14 rounded-md object-cover shrink-0"
-									fallbackClass="w-14 h-14 rounded-md shrink-0"
-									initialClass="text-xl font-extrabold text-flag"
-								/>
-								<span class="flex-1 min-w-0 text-left">
-									<span class="block text-[17px] font-extrabold leading-snug">{c.name}</span>
-									{#if visionOf(c)}
-										<span class="block text-[13px] text-muted leading-snug mt-0.5">{visionOf(c)}</span>
-									{/if}
-								</span>
-								{#if pickedId === c.id}
-									<span class="stamp" aria-hidden="true">COBLOS</span>
-								{/if}
-							</button>
-						{/each}
-					</div>
-				{/if}
-
-				<button
-					type="button"
-					disabled={!canSubmit}
-					onclick={() => (showConfirm = true)}
-					class="btn-flag mt-5"
-				>
-					Sahkan suaraku
-				</button>
-				<p class="footnote">Suaramu tercatat permanen setelah disahkan.<br />Pilihanmu rahasia, panitia tidak bisa melacaknya.</p>
-			</section>
+					<button
+						type="button"
+						disabled={!canSubmit}
+						onclick={() => (showConfirm = true)}
+						class="btn-flag mt-5"
+					>
+						Sahkan suaraku
+					</button>
+					{#if tokenState === 'valid' && missingElections.length > 0}
+						<p class="hint mt-2 !mb-0">
+							Pilih juga {missingElections.map((e) => ELECTION_LABEL[e as keyof typeof ELECTION_LABEL]).join(' dan ')} sebelum mengesahkan.
+						</p>
+					{/if}
+					<p class="footnote">Suaramu tercatat permanen setelah disahkan.<br />Pilihanmu rahasia, panitia tidak bisa melacaknya.</p>
+				</section>
+			{/if}
 		{/if}
 
 		<p class="footnote !mt-8">
@@ -303,13 +345,18 @@
 </div>
 
 <!-- Modal konfirmasi -->
-{#if showConfirm && picked}
+{#if showConfirm && votableElections.length > 0}
 	<div class="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="confirm-title">
 		<button type="button" aria-label="Tutup" onclick={() => (showConfirm = false)} class="absolute inset-0 bg-ink/60 cursor-default"></button>
 		<div class="relative bg-paper rounded-lg w-full max-w-sm p-7 text-center" style="box-shadow: 0 10px 40px rgba(27,27,27,.25);">
 			<span class="lbl !mb-3">KONFIRMASI</span>
-			<h2 id="confirm-title" class="text-xl font-extrabold mb-1">Kamu memilih</h2>
-			<p class="text-lg font-extrabold text-flag mb-4">{picked.name}</p>
+			<h2 id="confirm-title" class="text-xl font-extrabold mb-4">Kamu memilih</h2>
+			{#each votableElections as election}
+				<div class="mb-4">
+					<span class="lbl !mb-1">{ELECTION_LABEL[election as keyof typeof ELECTION_LABEL]}</span>
+					<p class="text-lg font-extrabold text-flag">{candidateName(election)}</p>
+				</div>
+			{/each}
 			<p class="hint !mb-6">Suara tidak bisa diubah setelah disahkan.</p>
 			<div class="flex flex-col gap-3">
 				<button type="button" onclick={submitVote} disabled={submitting} class="btn-flag">

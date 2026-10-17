@@ -1,5 +1,4 @@
--- Skema database pemilihan OSIS (Neon Postgres). Idempoten: aman dijalankan ulang.
--- Cara pakai: buka SQL Editor di dashboard Neon, tempel seluruh isi file ini, jalankan.
+-- Skema database pemilihan OSIS + MPK (Postgres). Idempoten: aman dijalankan ulang.
 
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
 
@@ -18,10 +17,12 @@ CREATE TABLE IF NOT EXISTS candidates (
 	photo_url text,
 	vision text,
 	mission text,
+	election text NOT NULL DEFAULT 'osis' CHECK (election IN ('osis', 'mpk')),
 	sort_order int NOT NULL DEFAULT 0,
 	created_at timestamptz NOT NULL DEFAULT now(),
 	updated_at timestamptz NOT NULL DEFAULT now()
 );
+CREATE INDEX IF NOT EXISTS idx_candidates_election ON candidates (election);
 
 CREATE TABLE IF NOT EXISTS tokens (
 	id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -38,11 +39,14 @@ CREATE INDEX IF NOT EXISTS idx_tokens_used ON tokens (is_used);
 CREATE TABLE IF NOT EXISTS votes (
 	id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
 	candidate_id uuid NOT NULL REFERENCES candidates (id) ON DELETE CASCADE,
-	token_id uuid UNIQUE NOT NULL REFERENCES tokens (id),
+	token_id uuid NOT NULL REFERENCES tokens (id),
+	election text NOT NULL DEFAULT 'osis' CHECK (election IN ('osis', 'mpk')),
 	points int NOT NULL CHECK (points IN (1, 2)),
-	created_at timestamptz NOT NULL DEFAULT now()
+	created_at timestamptz NOT NULL DEFAULT now(),
+	CONSTRAINT votes_token_election_key UNIQUE (token_id, election)
 );
 CREATE INDEX IF NOT EXISTS idx_votes_candidate ON votes (candidate_id);
+CREATE INDEX IF NOT EXISTS idx_votes_election ON votes (election);
 
 CREATE TABLE IF NOT EXISTS sessions (
 	id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -58,7 +62,8 @@ CREATE TABLE IF NOT EXISTS settings (
 );
 
 INSERT INTO settings (key, value) VALUES
-	('voting_open', 'true'),
+	('osis_open', 'true'),
+	('mpk_open', 'false'),
 	('election_title', 'Pemilihan Ketua OSIS'),
 	('school_name', 'SMAN Modal Bangsa')
 ON CONFLICT (key) DO NOTHING;

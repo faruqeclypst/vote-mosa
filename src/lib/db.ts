@@ -1,5 +1,7 @@
 import postgres, { type Sql } from 'postgres';
 
+export { ELECTIONS, ELECTION_LABEL, type Election } from './elections';
+
 let cached: Sql | null = null;
 
 export function db(): Sql {
@@ -23,6 +25,7 @@ export interface Candidate {
 	photo_url: string | null;
 	vision: string | null;
 	mission: string | null;
+	election: 'osis' | 'mpk';
 	sort_order: number;
 }
 

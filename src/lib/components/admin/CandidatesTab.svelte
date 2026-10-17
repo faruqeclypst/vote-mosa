@@ -9,6 +9,7 @@
 		photo_url: string | null;
 		vision: string | null;
 		mission: string | null;
+		election: 'osis' | 'mpk';
 		sort_order: number;
 	}
 
@@ -19,12 +20,18 @@
 	let saving = $state(false);
 	let editingId = $state<string | null>(null);
 	let confirmDelete = $state<string | null>(null);
+	let electionFilter = $state<'all' | 'osis' | 'mpk'>('all');
 
 	let name = $state('');
 	let photo_url = $state('');
 	let vision = $state('');
 	let mission = $state('');
+	let election = $state<'osis' | 'mpk'>('osis');
 	let sort_order = $state(0);
+
+	const filtered = $derived(
+		electionFilter === 'all' ? items : items.filter((c) => c.election === electionFilter)
+	);
 
 	async function load() {
 		loading = true;
@@ -46,6 +53,7 @@
 		photo_url = '';
 		vision = '';
 		mission = '';
+		election = electionFilter === 'mpk' ? 'mpk' : 'osis';
 		sort_order = items.length;
 		formError = '';
 	}
@@ -56,6 +64,7 @@
 		photo_url = c.photo_url ?? '';
 		vision = c.vision ?? '';
 		mission = c.mission ?? '';
+		election = c.election;
 		sort_order = c.sort_order;
 		formError = '';
 		window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -66,7 +75,7 @@
 		if (saving) return;
 		saving = true;
 		formError = '';
-		const payload = { name, photo_url, vision, mission, sort_order: Number(sort_order) || 0 };
+		const payload = { name, photo_url, vision, mission, election, sort_order: Number(sort_order) || 0 };
 		try {
 			const res = await fetch(
 				editingId ? `/api/admin/candidates/${editingId}` : '/api/admin/candidates',
@@ -133,6 +142,13 @@
 			<label for="c-order" class="field-label">Urutan tampil</label>
 			<input id="c-order" type="number" bind:value={sort_order} min="0" class="input" />
 		</div>
+		<div>
+			<label for="c-election" class="field-label">Pemilihan</label>
+			<select id="c-election" bind:value={election} class="input">
+				<option value="osis">OSIS — Ketua OSIS</option>
+				<option value="mpk">MPK — Ketua MPK</option>
+			</select>
+		</div>
 		<div class="sm:col-span-2">
 			<label for="c-photo" class="field-label">URL foto</label>
 			<input id="c-photo" type="url" bind:value={photo_url} placeholder="https://..." class="input" />
@@ -174,9 +190,22 @@
 </section>
 
 <span class="lbl">TERDAFTAR</span>
+<div class="flex gap-1 mb-4" role="tablist" aria-label="Filter pemilihan">
+	{#each [{ id: 'all', label: 'Semua' }, { id: 'osis', label: 'OSIS' }, { id: 'mpk', label: 'MPK' }] as f}
+		<button
+			type="button"
+			role="tab"
+			aria-selected={electionFilter === f.id}
+			onclick={() => (electionFilter = f.id as 'all' | 'osis' | 'mpk')}
+			class={electionFilter === f.id ? 'tab-active' : 'tab'}
+		>
+			{f.label}
+		</button>
+	{/each}
+</div>
 {#if loading}
 	<p class="text-muted">Memuat kandidat...</p>
-{:else if items.length === 0}
+{:else if filtered.length === 0}
 	<div class="recap text-muted">Belum ada kandidat.</div>
 {:else}
 	<div class="ledger-wrap">
@@ -185,12 +214,13 @@
 				<tr>
 					<th scope="col">NO</th>
 					<th scope="col">KANDIDAT</th>
+					<th scope="col">PEMILIHAN</th>
 					<th scope="col">URUTAN</th>
 					<th scope="col"><span class="sr-only">Aksi</span></th>
 				</tr>
 			</thead>
 			<tbody>
-				{#each items as c, i (c.id)}
+				{#each filtered as c, i (c.id)}
 					<tr>
 						<td class="text-muted font-bold">{i + 1}</td>
 						<td>
@@ -205,6 +235,11 @@
 								/>
 								<span class="font-extrabold">{c.name}</span>
 							</div>
+						</td>
+						<td>
+							<span class="text-xs font-extrabold tracking-widest {c.election === 'mpk' ? 'text-flag' : 'text-muted'}">
+								{c.election === 'mpk' ? 'MPK' : 'OSIS'}
+							</span>
 						</td>
 						<td class="text-muted">{c.sort_order}</td>
 						<td class="text-right whitespace-nowrap">
