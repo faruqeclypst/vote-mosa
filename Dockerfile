@@ -11,7 +11,7 @@ RUN node node_modules/@sveltejs/kit/svelte-kit.js sync && \
 FROM node:20-alpine
 WORKDIR /app
 ENV NODE_ENV=production
-ENV HOST=127.0.0.1
+ENV HOST=0.0.0.0
 ENV PORT=3103
 COPY package.json package-lock.json ./
 RUN npm ci --omit=dev --no-bin-links --no-audit --no-fund

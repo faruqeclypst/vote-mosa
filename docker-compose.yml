@@ -4,7 +4,7 @@ services:
     container_name: pemos-osis-app
     restart: unless-stopped
     environment:
-      DATABASE_URL: postgres://pemos:${POSTGRES_PASSWORD:?isi POSTGRES_PASSWORD di .env}/pemos-postgres:5432/pemos
+      DATABASE_URL: postgres://pemos:${POSTGRES_PASSWORD}@pemos-postgres:5432/pemos
       NODE_ENV: production
     ports:
       - "127.0.0.1:3103:3103"
@@ -18,7 +18,7 @@ services:
     restart: unless-stopped
     environment:
       POSTGRES_USER: pemos
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?isi POSTGRES_PASSWORD di .env}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: pemos
     volumes:
       - pemos-pgdata:/var/lib/postgresql/data

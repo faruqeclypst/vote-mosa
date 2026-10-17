@@ -41,9 +41,9 @@ DECLARE
 		'XI-1','XI-2','XI-3','XI-4','XI-5','XI-6',
 		'XII-1','XII-2','XII-3','XII-4','XII-5','XII-6'];
 	known text[] := ARRAY['ABCDE','GURU1','SISWA'];
-	code text;
-	ttype text;
-	lbl text;
+	v_code text;
+	v_type text;
+	v_label text;
 	i int;
 	j int;
 	r record;
@@ -54,15 +54,15 @@ BEGIN
 	IF (SELECT COUNT(*) FROM tokens) < 30 THEN
 		FOR i IN 1..40 LOOP
 			EXIT WHEN (SELECT COUNT(*) FROM tokens) >= 30;
-			code := '';
+			v_code := '';
 			FOR j IN 1..5 LOOP
-				code := code || substr(alphabet, 1 + floor(random() * 32)::int, 1);
+				v_code := v_code || substr(alphabet, 1 + floor(random() * 32)::int, 1);
 			END LOOP;
-			ttype := CASE WHEN random() < 0.7 THEN 'student' ELSE 'teacher' END;
-			lbl := CASE WHEN ttype = 'student'
+			v_type := CASE WHEN random() < 0.7 THEN 'student' ELSE 'teacher' END;
+			v_label := CASE WHEN v_type = 'student'
 				THEN classes[1 + floor(random() * 18)::int]
 				ELSE 'Guru' END;
-			INSERT INTO tokens (code, type, label) VALUES (code, ttype, lbl)
+			INSERT INTO tokens (code, type, label) VALUES (v_code, v_type, v_label)
 			ON CONFLICT (code) DO NOTHING;
 		END LOOP;
 	END IF;
