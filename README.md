@@ -22,7 +22,10 @@ Alur pemilih: masukkan kode token (5 karakter) → geser kartu kandidat ala Tind
 ```bash
 npm install --no-bin-links
 cp .env.example .env   # lalu isi DATABASE_URL
-npm run dev
+# dev server (npm run dev tidak jalan di VM ini karena --no-bin-links):
+node node_modules/vite/bin/vite.js dev
+# build produksi:
+node node_modules/@sveltejs/kit/svelte-kit.js sync && node node_modules/vite/bin/vite.js build
 ```
 
 Buka http://localhost:5173. Kunjungan pertama ke `/admin` mengarah ke
