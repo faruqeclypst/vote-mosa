@@ -1,153 +1,287 @@
 <script lang="ts">
-	import { Vote, ShieldCheck, Smartphone, BarChart3, KeyRound, Users, CheckCircle2 } from '@lucide/svelte';
+	import Photo from '$lib/components/Photo.svelte';
+	import type { Candidate } from '$lib/db';
 	import type { PageData } from './$types';
 
 	let { data }: { data: PageData } = $props();
 
-	const features = [
-		{
-			icon: ShieldCheck,
-			tile: 'bg-emerald-100 text-emerald-700',
-			title: 'Aman dengan token unik',
-			text: 'Setiap pemilih menerima kode token 5 karakter yang hanya bisa dipakai satu kali. Pilihanmu bersifat rahasia.'
-		},
-		{
-			icon: Smartphone,
-			tile: 'bg-blue-100 text-blue-700',
-			title: 'Mudah lewat HP',
-			text: 'Tampilan dirancang untuk layar ponsel. Geser kartu kandidat ke kanan untuk memilih, ke kiri untuk melewati.'
-		},
-		{
-			icon: BarChart3,
-			tile: 'bg-amber-100 text-amber-700',
-			title: 'Hasil transparan',
-			text: 'Panitia memantau perolehan suara secara langsung dengan grafik dan peringkat yang selalu diperbarui.'
-		}
-	];
+	type TokenState = 'idle' | 'checking' | 'valid' | 'error';
 
-	const steps = [
-		{
-			icon: KeyRound,
-			title: 'Masukkan kode token',
-			text: 'Kode 5 karakter yang dibagikan panitia ke setiap pemilih.'
-		},
-		{
-			icon: Users,
-			title: 'Pilih kandidat',
-			text: 'Baca visi dan misi tiap kandidat, lalu pilih yang paling kamu dukung.'
-		},
-		{
-			icon: CheckCircle2,
-			title: 'Konfirmasi dan kirim',
-			text: 'Periksa pilihanmu sekali lagi, lalu kirim. Suara tercatat permanen.'
+	let digits = $state(['', '', '', '', '']);
+	let inputs: HTMLInputElement[] = [];
+	let tokenState = $state<TokenState>('idle');
+	let tokenError = $state('');
+	let voterType = $state<'student' | 'teacher' | null>(null);
+	let lastChecked = $state('');
+
+	let pickedId = $state<string | null>(null);
+	let showConfirm = $state(false);
+	let submitting = $state(false);
+	let submitError = $state('');
+	let done = $state(false);
+
+	const code = $derived(digits.join(''));
+	const picked: Candidate | null = $derived(data.candidates.find((c) => c.id === pickedId) ?? null);
+	const canSubmit = $derived(tokenState === 'valid' && pickedId !== null && !done);
+
+	function resetTokenState() {
+		if (tokenState !== 'idle') {
+			tokenState = 'idle';
+			tokenError = '';
+			voterType = null;
 		}
-	];
+	}
+
+	function onDigitInput(i: number, e: Event) {
+		const el = e.currentTarget as HTMLInputElement;
+		const ch = el.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(-1);
+		digits[i] = ch;
+		el.value = ch;
+		if (ch && i < 4) inputs[i + 1]?.focus();
+		resetTokenState();
+	}
+
+	function onDigitKey(i: number, e: KeyboardEvent) {
+		if (e.key === 'Backspace' && !digits[i] && i > 0) {
+			digits[i - 1] = '';
+			inputs[i - 1]?.focus();
+			resetTokenState();
+		} else if (e.key === 'ArrowLeft' && i > 0) {
+			inputs[i - 1]?.focus();
+		} else if (e.key === 'ArrowRight' && i < 4) {
+			inputs[i + 1]?.focus();
+		}
+	}
+
+	function onPaste(e: ClipboardEvent) {
+		e.preventDefault();
+		const text = (e.clipboardData?.getData('text') ?? '')
+			.toUpperCase()
+			.replace(/[^A-Z0-9]/g, '')
+			.slice(0, 5);
+		if (!text) return;
+		for (let i = 0; i < 5; i++) digits[i] = text[i] ?? '';
+		inputs[Math.min(text.length, 4)]?.focus();
+		resetTokenState();
+	}
+
+	$effect(() => {
+		if (code.length === 5 && code !== lastChecked && tokenState !== 'checking') {
+			validateToken(code);
+		}
+	});
+
+	async function validateToken(c: string) {
+		lastChecked = c;
+		tokenState = 'checking';
+		tokenError = '';
+		try {
+			const res = await fetch('/api/vote/validate', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ code: c })
+			});
+			const body = await res.json();
+			if (!res.ok) {
+				tokenState = 'error';
+				tokenError = body.error ?? 'Kode token tidak valid.';
+				return;
+			}
+			voterType = body.type;
+			tokenState = 'valid';
+		} catch {
+			tokenState = 'error';
+			tokenError = 'Tidak bisa terhubung ke server. Periksa koneksimu.';
+		}
+	}
+
+	function togglePick(id: string) {
+		if (tokenState !== 'valid' || done) return;
+		pickedId = pickedId === id ? null : id;
+	}
+
+	async function submitVote() {
+		if (submitting || !pickedId) return;
+		submitting = true;
+		submitError = '';
+		try {
+			const res = await fetch('/api/vote/submit', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ code, candidateId: pickedId })
+			});
+			const body = await res.json();
+			if (!res.ok) {
+				submitError = body.error ?? 'Gagal menyimpan suara.';
+				showConfirm = false;
+				submitting = false;
+				window.scrollTo({ top: 0, behavior: 'smooth' });
+				return;
+			}
+			showConfirm = false;
+			done = true;
+			window.scrollTo({ top: 0 });
+		} catch {
+			submitError = 'Tidak bisa terhubung ke server. Coba lagi.';
+			showConfirm = false;
+		} finally {
+			submitting = false;
+		}
+	}
+
+	function visionOf(c: Candidate): string {
+		return c.vision?.trim() || c.mission?.trim().split('\n')[0] || '';
+	}
 </script>
 
 <svelte:head>
 	<title>{data.title} - {data.school}</title>
 </svelte:head>
 
-<div class="min-h-dvh flex flex-col bg-slate-50">
-	<header class="bg-white border-b border-slate-200 sticky top-0 z-50">
-		<div class="mx-auto max-w-6xl px-4 sm:px-6 py-3.5 flex items-center justify-between gap-4">
-			<a href="/" class="flex items-center gap-2.5">
-				<span class="bg-blue-600 rounded-xl p-2" aria-hidden="true">
-					<Vote class="h-5 w-5 text-white" />
-				</span>
-				<span class="text-xl font-extrabold tracking-tight text-slate-900">PEMOS</span>
-			</a>
-			<a href="/admin" class="btn-secondary btn-sm">Admin</a>
-		</div>
-	</header>
+<div class="min-h-dvh py-6 sm:py-10 px-4">
+	<div class="sheet">
+		{#if done}
+			<!-- Layar sukses -->
+			<div class="kop">
+				<div class="kop-school">{data.school.toUpperCase()}</div>
+				<h1 class="kop-title">{data.title}</h1>
+			</div>
+			<div class="rule-double"></div>
+			<div class="text-center py-8">
+				<span class="stamp-big">SAH</span>
+				<h2 class="text-2xl font-extrabold mt-8 mb-2">Suaramu tercatat</h2>
+				<p class="hint !mb-0">Terima kasih sudah berpartisipasi.<br />Satu token, satu suara.</p>
+			</div>
+		{:else if !data.votingOpen}
+			<div class="kop">
+				<div class="kop-school">{data.school.toUpperCase()}</div>
+				<h1 class="kop-title">{data.title}</h1>
+			</div>
+			<div class="rule-double"></div>
+			<h2 class="text-xl font-extrabold mb-2">Voting sedang ditutup</h2>
+			<p class="hint">Panitia belum membuka masa pemilihan. Silakan kembali lagi nanti.</p>
+		{:else}
+			<!-- Kop surat suara -->
+			<div class="kop">
+				<div class="kop-school">{data.school.toUpperCase()}</div>
+				<h1 class="kop-title">{data.title}</h1>
+				<div class="kop-period">Tahun Ajaran 2025/2026 &middot; Surat Suara Digital</div>
+			</div>
+			<div class="rule-double"></div>
 
-	<main class="flex-1">
-		<!-- Hero -->
-		<section class="mx-auto max-w-6xl px-4 sm:px-6 pt-14 pb-16 sm:pt-20 sm:pb-24 text-center">
-			<p class="badge-blue mb-5">
-				<CheckCircle2 class="h-3.5 w-3.5" />
-				Sistem voting digital
-			</p>
-			<h1 class="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-slate-900 leading-[1.1] mb-5">
-				{data.title}
-			</h1>
-			<p class="text-lg text-slate-600 max-w-2xl mx-auto mb-9">
-				{data.school} — pilih ketua OSIS periode berikutnya. Satu token, satu suara, tercatat aman
-				dan transparan.
-			</p>
-			{#if data.votingOpen}
-				<a href="/vote" class="btn-primary text-lg px-10">
-					<Vote class="h-5 w-5" />
-					Mulai Voting Sekarang
-				</a>
-			{:else}
-				<div class="card-pad max-w-xl mx-auto text-left">
-					<p class="font-semibold text-slate-900 mb-1">Voting sedang ditutup</p>
-					<p class="text-slate-600">Panitia belum membuka masa pemilihan. Silakan kembali lagi nanti.</p>
-				</div>
+			{#if submitError}
+				<p role="alert" class="alert-error mb-6">{submitError}</p>
 			{/if}
-		</section>
 
-		<!-- Fitur -->
-		<section aria-label="Keunggulan" class="mx-auto max-w-6xl px-4 sm:px-6 pb-16 sm:pb-20">
-			<div class="grid gap-5 md:grid-cols-3">
-				{#each features as f}
-					<div class="card-pad">
-						<div class="rounded-2xl w-14 h-14 flex items-center justify-center mb-5 {f.tile}" aria-hidden="true">
-							<f.icon class="h-7 w-7" />
-						</div>
-						<h2 class="text-lg font-bold text-slate-900 mb-2">{f.title}</h2>
-						<p class="text-slate-600 leading-relaxed">{f.text}</p>
-					</div>
-				{/each}
-			</div>
-		</section>
-
-		<!-- Cara memilih -->
-		<section aria-label="Cara memilih" class="bg-white border-y border-slate-200">
-			<div class="mx-auto max-w-6xl px-4 sm:px-6 py-16 sm:py-20">
-				<h2 class="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 text-center mb-10">
-					Cara memilih
-				</h2>
-				<ol class="grid gap-5 md:grid-cols-3">
-					{#each steps as s, i}
-						<li class="card-pad relative">
-							<span
-								class="absolute top-5 right-6 text-5xl font-extrabold text-slate-100 select-none"
-								aria-hidden="true"
-							>
-								{i + 1}
-							</span>
-							<div class="rounded-2xl w-12 h-12 flex items-center justify-center mb-4 bg-blue-100 text-blue-700" aria-hidden="true">
-								<s.icon class="h-6 w-6" />
-							</div>
-							<h3 class="font-bold text-slate-900 mb-1.5">{s.title}</h3>
-							<p class="text-sm text-slate-600 leading-relaxed">{s.text}</p>
-						</li>
+			<!-- Kode token -->
+			<section aria-label="Kode token">
+				<span class="lbl">KODE TOKEN</span>
+				<p class="hint">Masukkan 5 karakter token yang dibagikan panitia. Satu token untuk satu suara.</p>
+				<div class="tokenboxes" role="group" aria-label="Kode token, 5 karakter">
+					{#each digits as d, i}
+						<input
+							type="text"
+							inputmode="text"
+							autocomplete="off"
+							autocapitalize="characters"
+							spellcheck="false"
+							aria-label="Karakter {i + 1} dari 5"
+							maxlength="2"
+							bind:this={inputs[i]}
+							value={d}
+							oninput={(e) => onDigitInput(i, e)}
+							onkeydown={(e) => onDigitKey(i, e)}
+							onpaste={onPaste}
+							class="tokenbox {d ? 'filled' : ''}"
+						/>
 					{/each}
-				</ol>
-				<div class="card-pad mt-8 max-w-3xl mx-auto">
-					<h3 class="font-bold text-slate-900 mb-3">Perlu diketahui</h3>
-					<ul class="list-disc pl-5 space-y-1.5 text-slate-600 text-sm">
-						<li>Satu token hanya bisa dipakai satu kali.</li>
-						<li>Token guru bernilai 2 poin, token siswa bernilai 1 poin.</li>
-						<li>Pilihanmu bersifat rahasia, panitia tidak bisa melacak siapa memilih siapa.</li>
-					</ul>
 				</div>
-			</div>
-		</section>
-	</main>
+				{#if tokenState === 'checking'}
+					<p role="status" class="hint !text-ink font-semibold">Memeriksa token...</p>
+				{:else if tokenState === 'valid'}
+					<p role="status" class="hint !text-ink font-bold">
+						Token valid{voterType === 'teacher' ? ' — suaramu bernilai 2 poin.' : ' — suaramu bernilai 1 poin.'}
+					</p>
+				{:else if tokenState === 'error'}
+					<p role="alert" class="alert-error mb-6">{tokenError}</p>
+				{/if}
+			</section>
 
-	<footer class="bg-slate-900 text-white">
-		<div class="mx-auto max-w-6xl px-4 sm:px-6 py-10 text-center">
-			<div class="flex items-center justify-center gap-2.5 mb-4">
-				<span class="bg-blue-600 rounded-xl p-2" aria-hidden="true">
-					<Vote class="h-5 w-5 text-white" />
-				</span>
-				<span class="text-lg font-extrabold tracking-tight">PEMOS {data.school}</span>
-			</div>
-			<p class="text-slate-400 text-sm mb-1">Sistem voting digital untuk pemilihan ketua OSIS.</p>
-			<p class="text-slate-500 text-sm">Satu token, satu suara.</p>
-		</div>
-	</footer>
+			<!-- Surat suara -->
+			<section aria-label="Surat suara" class="mt-2">
+				<span class="lbl">SURAT SUARA</span>
+				<p class="hint">Ketuk satu kandidat untuk mencoblos. Kamu bisa mengganti pilihan sebelum disahkan.</p>
+
+				{#if data.candidates.length === 0}
+					<p class="hint">Belum ada kandidat. Panitia belum mendaftarkan kandidat.</p>
+				{:else}
+					<div>
+						{#each data.candidates as c, i (c.id)}
+							<button
+								type="button"
+								disabled={tokenState !== 'valid'}
+								onclick={() => togglePick(c.id)}
+								class="ballot-row {pickedId === c.id ? 'picked' : ''}"
+								aria-pressed={pickedId === c.id}
+							>
+								<span class="num-circle" aria-hidden="true">{i + 1}</span>
+								<Photo
+									src={c.photo_url}
+									alt="Foto {c.name}"
+									name={c.name}
+									imgClass="w-14 h-14 rounded-md object-cover shrink-0"
+									fallbackClass="w-14 h-14 rounded-md shrink-0"
+									initialClass="text-xl font-extrabold text-flag"
+								/>
+								<span class="flex-1 min-w-0 text-left">
+									<span class="block text-[17px] font-extrabold leading-snug">{c.name}</span>
+									{#if visionOf(c)}
+										<span class="block text-[13px] text-muted leading-snug mt-0.5">{visionOf(c)}</span>
+									{/if}
+								</span>
+								{#if pickedId === c.id}
+									<span class="stamp" aria-hidden="true">COBLOS</span>
+								{/if}
+							</button>
+						{/each}
+					</div>
+				{/if}
+
+				<button
+					type="button"
+					disabled={!canSubmit}
+					onclick={() => (showConfirm = true)}
+					class="btn-flag mt-5"
+				>
+					Sahkan suaraku
+				</button>
+				<p class="footnote">Suaramu tercatat permanen setelah disahkan.<br />Pilihanmu rahasia, panitia tidak bisa melacaknya.</p>
+			</section>
+		{/if}
+
+		<p class="footnote !mt-8">
+			Panitia? <a href="/admin/login" class="underline font-bold text-ink">Masuk sebagai admin</a>
+		</p>
+	</div>
 </div>
+
+<!-- Modal konfirmasi -->
+{#if showConfirm && picked}
+	<div class="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="confirm-title">
+		<button type="button" aria-label="Tutup" onclick={() => (showConfirm = false)} class="absolute inset-0 bg-ink/60 cursor-default"></button>
+		<div class="relative bg-paper rounded-lg w-full max-w-sm p-7 text-center" style="box-shadow: 0 10px 40px rgba(27,27,27,.25);">
+			<span class="lbl !mb-3">KONFIRMASI</span>
+			<h2 id="confirm-title" class="text-xl font-extrabold mb-1">Kamu memilih</h2>
+			<p class="text-lg font-extrabold text-flag mb-4">{picked.name}</p>
+			<p class="hint !mb-6">Suara tidak bisa diubah setelah disahkan.</p>
+			<div class="flex flex-col gap-3">
+				<button type="button" onclick={submitVote} disabled={submitting} class="btn-flag">
+					{submitting ? 'Mengirim...' : 'Sahkan'}
+				</button>
+				<button type="button" onclick={() => (showConfirm = false)} disabled={submitting} class="btn-line w-full">
+					Kembali
+				</button>
+			</div>
+		</div>
+	</div>
+{/if}

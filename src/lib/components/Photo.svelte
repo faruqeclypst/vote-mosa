@@ -5,7 +5,7 @@
 		name,
 		imgClass = '',
 		fallbackClass = '',
-		initialClass = 'text-5xl font-bold text-blue-700'
+		initialClass = 'text-5xl font-extrabold text-flag'
 	}: {
 		src: string | null;
 		alt: string;
@@ -29,7 +29,7 @@
 		onerror={() => (failed = true)}
 	/>
 {:else}
-	<div class="{fallbackClass} flex items-center justify-center bg-blue-50" aria-hidden="true">
+	<div class="{fallbackClass} flex items-center justify-center bg-picked border border-line" aria-hidden="true">
 		<span class={initialClass}>{initial}</span>
 	</div>
 {/if}

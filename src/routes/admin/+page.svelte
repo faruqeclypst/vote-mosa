@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { page } from '$app/state';
 	import { goto } from '$app/navigation';
-	import { Vote, LogOut } from '@lucide/svelte';
+	import { LogOut } from '@lucide/svelte';
 	import StatsTab from '$lib/components/admin/StatsTab.svelte';
 	import CandidatesTab from '$lib/components/admin/CandidatesTab.svelte';
 	import TokensTab from '$lib/components/admin/TokensTab.svelte';
@@ -41,50 +41,49 @@
 </script>
 
 <svelte:head>
-	<title>Dashboard Admin - Pemilihan OSIS</title>
+	<title>Berita Acara Digital - Pemilihan OSIS</title>
 </svelte:head>
 
-<div class="min-h-dvh flex flex-col bg-slate-50">
-	<header class="bg-white border-b border-slate-200 sticky top-0 z-20">
-		<div class="mx-auto max-w-6xl px-4 sm:px-6 py-3 flex items-center justify-between gap-4">
-			<div class="flex items-center gap-2.5">
-				<span class="bg-blue-600 rounded-xl p-2" aria-hidden="true">
-					<Vote class="h-5 w-5 text-white" />
-				</span>
-				<div>
-					<p class="font-extrabold tracking-tight text-slate-900 leading-none">Panel Panitia</p>
-					<p class="text-xs text-slate-500 mt-1">
-						{data.admin?.name} ({data.admin?.role === 'super' ? 'super admin' : 'admin'})
-					</p>
+<div class="min-h-dvh py-6 sm:py-10 px-4">
+	<div class="sheet-wide">
+		<header>
+			<div class="kop">
+				<div class="kop-school">SMAN MODAL BANGSA</div>
+				<h1 class="kop-title">Berita Acara Digital</h1>
+				<div class="kop-period">Pemilihan Ketua OSIS &middot; Tahun Ajaran 2025/2026</div>
+			</div>
+			<div class="rule-double"></div>
+			<div class="flex flex-wrap items-center justify-between gap-3 mb-6">
+				<p class="text-sm text-muted">
+					<span class="font-extrabold text-ink">{data.admin?.name}</span>
+					&middot; {data.admin?.role === 'super' ? 'super admin' : 'admin'}
+				</p>
+				<div class="flex items-center gap-2">
+					<a href="/" class="btn-line btn-sm">Lihat surat suara</a>
+					<button type="button" onclick={logout} class="btn-line btn-sm">
+						<LogOut class="h-4 w-4" />
+						Keluar
+					</button>
 				</div>
 			</div>
-			<div class="flex items-center gap-2">
-				<a href="/" class="btn-secondary btn-sm">Lihat situs</a>
-				<button type="button" onclick={logout} class="btn-secondary btn-sm">
-					<LogOut class="h-4 w-4" />
-					Keluar
-				</button>
-			</div>
-		</div>
-		<nav aria-label="Tab dashboard" class="mx-auto max-w-6xl px-4 sm:px-6">
-			<div class="flex gap-1 overflow-x-auto" role="tablist">
-				{#each allTabs as t}
-					<button
-						type="button"
-						role="tab"
-						aria-selected={active() === t.id}
-						onclick={() => selectTab(t.id)}
-						class={active() === t.id ? 'tab-btn-active' : 'tab-btn'}
-					>
-						{t.label}
-					</button>
-				{/each}
-			</div>
-		</nav>
-	</header>
+			<nav aria-label="Bagian berita acara" class="border-b border-line">
+				<div class="flex gap-1 overflow-x-auto" role="tablist">
+					{#each allTabs as t}
+						<button
+							type="button"
+							role="tab"
+							aria-selected={active() === t.id}
+							onclick={() => selectTab(t.id)}
+							class={active() === t.id ? 'tab-active' : 'tab'}
+						>
+							{t.label}
+						</button>
+					{/each}
+				</div>
+			</nav>
+		</header>
 
-	<main class="flex-1">
-		<div class="mx-auto max-w-6xl px-4 sm:px-6 py-8">
+		<main class="pt-8">
 			{#if active() === 'ringkasan'}
 				<StatsTab />
 			{:else if active() === 'kandidat'}
@@ -98,6 +97,6 @@
 			{:else if active() === 'admin' && isSuper}
 				<AdminsTab />
 			{/if}
-		</div>
-	</main>
+		</main>
+	</div>
 </div>

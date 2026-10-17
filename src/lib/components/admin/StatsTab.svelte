@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { RefreshCw, Vote, Star, KeyRound, Users } from '@lucide/svelte';
+	import { RefreshCw } from '@lucide/svelte';
 
 	interface PerCandidate {
 		id: string;
@@ -39,62 +39,71 @@
 	onMount(load);
 </script>
 
-<div class="flex items-center justify-between mb-6">
-	<h1 class="page-title">Ringkasan</h1>
-	<button type="button" onclick={load} class="btn-secondary btn-sm">
+<div class="flex flex-wrap items-center justify-between gap-3 mb-6">
+	<div>
+		<span class="lbl !mb-1">REKAPITULASI</span>
+		<h1 class="section-head">Ringkasan</h1>
+	</div>
+	<button type="button" onclick={load} class="btn-line btn-sm">
 		<RefreshCw class="h-4 w-4" />
 		Muat ulang
 	</button>
 </div>
 
 {#if loading}
-	<p class="text-slate-500">Memuat ringkasan...</p>
+	<p class="text-muted">Memuat ringkasan...</p>
 {:else if error}
 	<p role="alert" class="alert-error">{error}</p>
 {:else if stats}
-	{@const cards = [
-		{ icon: Vote, tile: 'bg-blue-100 text-blue-700', label: 'Total suara masuk', value: String(stats.totalVotes), sub: null },
-		{ icon: Star, tile: 'bg-amber-100 text-amber-700', label: 'Total poin', value: String(stats.totalPoints), sub: 'siswa 1 poin, guru 2 poin' },
-		{ icon: KeyRound, tile: 'bg-emerald-100 text-emerald-700', label: 'Token terpakai', value: `${stats.tokensUsed}/${stats.tokensTotal}`, sub: null },
-		{ icon: Users, tile: 'bg-slate-100 text-slate-600', label: 'Partisipasi', value: `${stats.participationPct}%`, sub: null }
-	]}
-	<div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
-		{#each cards as c}
-			<div class="card-pad p-5">
-				<div class="rounded-xl w-10 h-10 flex items-center justify-center mb-3 {c.tile}" aria-hidden="true">
-					<c.icon class="h-5 w-5" />
-				</div>
-				<p class="text-sm text-slate-500 mb-1">{c.label}</p>
-				<p class="text-3xl font-extrabold tracking-tight text-slate-900">{c.value}</p>
-				{#if c.sub}
-					<p class="text-xs text-slate-500 mt-1">{c.sub}</p>
-				{/if}
-			</div>
-		{/each}
+	<div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-10">
+		<div class="recap">
+			<p class="recap-num">{stats.totalVotes}</p>
+			<span class="recap-label">SUARA MASUK</span>
+		</div>
+		<div class="recap">
+			<p class="recap-num">{stats.totalPoints}</p>
+			<span class="recap-label">TOTAL POIN</span>
+			<p class="text-xs text-faint mt-1">siswa 1 poin, guru 2 poin</p>
+		</div>
+		<div class="recap">
+			<p class="recap-num">{stats.tokensUsed}<span class="text-xl text-faint">/{stats.tokensTotal}</span></p>
+			<span class="recap-label">TOKEN TERPAKAI</span>
+		</div>
+		<div class="recap">
+			<p class="recap-num">{stats.participationPct}<span class="text-xl text-faint">%</span></p>
+			<span class="recap-label">PARTISIPASI</span>
+		</div>
 	</div>
 
-	<h2 class="section-title mb-4">Perolehan per kandidat</h2>
+	<span class="lbl">PEROLEHAN PER KANDIDAT</span>
 	{#if stats.perCandidate.length === 0}
-		<div class="card-pad text-slate-500">
-			Belum ada kandidat. Tambahkan kandidat di tab Kandidat.
-		</div>
+		<div class="recap text-muted">Belum ada kandidat. Tambahkan kandidat di tab Kandidat.</div>
 	{:else}
-		<div class="card divide-y divide-slate-100">
-			{#each stats.perCandidate as c, i}
-				<div class="p-4 flex items-center gap-4">
-					<span
-						class="text-sm font-bold w-9 h-9 shrink-0 rounded-full {i === 0 ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-600'} flex items-center justify-center"
-						aria-label="Peringkat {i + 1}"
-					>
-						{i + 1}
-					</span>
-					<div class="flex-1 min-w-0">
-						<p class="font-semibold text-slate-900 truncate">{c.name}</p>
-						<p class="text-sm text-slate-500">{c.votes} suara, {c.points} poin</p>
-					</div>
-					<p class="text-2xl font-extrabold text-slate-900 shrink-0">{c.points}</p>
-				</div>
-			{/each}
+		<div class="ledger-wrap">
+			<table class="ledger">
+				<thead>
+					<tr>
+						<th scope="col">NO</th>
+						<th scope="col">KANDIDAT</th>
+						<th scope="col" class="text-right">SUARA</th>
+						<th scope="col" class="text-right">POIN</th>
+					</tr>
+				</thead>
+				<tbody>
+					{#each stats.perCandidate as c, i}
+						<tr class={i === 0 ? 'bg-picked' : ''}>
+							<td>
+								<span class="num-circle !w-8 !h-8 !text-[13px] {i === 0 ? '!border-flag !text-flag' : ''}" aria-label="Peringkat {i + 1}">
+									{i + 1}
+								</span>
+							</td>
+							<td class="font-extrabold">{c.name}</td>
+							<td class="text-right">{c.votes}</td>
+							<td class="text-right font-extrabold text-lg">{c.points}</td>
+						</tr>
+					{/each}
+				</tbody>
+			</table>
 		</div>
 	{/if}
 {/if}

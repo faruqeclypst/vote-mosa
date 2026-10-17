@@ -23,7 +23,8 @@
 		totalPoints: number;
 	}
 
-	const PALETTE = ['#2563eb', '#10b981', '#f59e0b', '#0ea5e9', '#34d399', '#fbbf24', '#1d4ed8', '#047857'];
+	// Palet merah-tinta-kertas: merah bendera, tinta, abu hangat
+	const PALETTE = ['#c8102e', '#1b1b1b', '#8a8478', '#7a1f2b', '#b9b2a4', '#6b675e'];
 
 	let data = $state<Results | null>(null);
 	let error = $state('');
@@ -79,15 +80,18 @@
 	});
 </script>
 
-<div class="flex items-center justify-between mb-6">
-	<h1 class="page-title">Hasil</h1>
+<div class="flex flex-wrap items-center justify-between gap-3 mb-6">
+	<div>
+		<span class="lbl !mb-1">PENGHITUNGAN SUARA</span>
+		<h1 class="section-head">Hasil</h1>
+	</div>
 	<div class="flex items-center gap-3">
 		{#if lastUpdated}
-			<p class="text-xs text-slate-500 hidden sm:block">
+			<p class="text-xs text-faint hidden sm:block">
 				Diperbarui {lastUpdated.toLocaleTimeString('id-ID')} (otomatis tiap 5 detik)
 			</p>
 		{/if}
-		<button type="button" onclick={() => load()} class="btn-secondary btn-sm">
+		<button type="button" onclick={() => load()} class="btn-line btn-sm">
 			<RefreshCw class="h-4 w-4" />
 			Muat ulang
 		</button>
@@ -95,41 +99,39 @@
 </div>
 
 {#if loading && !data}
-	<p class="text-slate-500">Memuat hasil...</p>
+	<p class="text-muted">Memuat hasil...</p>
 {:else if error && !data}
 	<p role="alert" class="alert-error">{error}</p>
 {:else if data}
 	{#if data.perCandidate.length === 0}
-		<div class="card-pad text-slate-500">
-			Belum ada kandidat atau suara masuk.
-		</div>
+		<div class="recap text-muted">Belum ada kandidat atau suara masuk.</div>
 	{:else}
-		<div class="grid gap-5 lg:grid-cols-2 mb-10">
-			<section aria-label="Grafik batang perolehan poin" class="card-pad">
-				<h2 class="text-xl font-bold text-slate-900 mb-5">Perolehan poin</h2>
-				<div class="space-y-4">
+		<div class="grid gap-4 lg:grid-cols-2 mb-10">
+			<section aria-label="Grafik batang perolehan poin" class="recap !p-6">
+				<span class="lbl">PEROLEHAN POIN</span>
+				<div class="space-y-4 mt-4">
 					{#each data.perCandidate as c, i}
 						<div>
 							<div class="flex justify-between text-sm mb-1.5">
-								<span class="font-semibold text-slate-900 truncate pr-2">{c.name}</span>
-								<span class="text-slate-500 shrink-0">{c.points} poin</span>
+								<span class="font-extrabold truncate pr-2">{c.name}</span>
+								<span class="text-muted shrink-0">{c.points} poin</span>
 							</div>
-							<div class="h-3.5 rounded-full bg-slate-100 overflow-hidden" role="img" aria-label="{c.name}: {c.points} poin">
-								<div class="h-full rounded-full transition-all" style="width: {(c.points / maxPoints) * 100}%; background-color: {PALETTE[i % PALETTE.length]};"></div>
+							<div class="h-3.5 bg-desk overflow-hidden rounded-sm" role="img" aria-label="{c.name}: {c.points} poin">
+								<div class="h-full transition-all" style="width: {(c.points / maxPoints) * 100}%; background-color: {PALETTE[i % PALETTE.length]};"></div>
 							</div>
 						</div>
 					{/each}
 				</div>
 			</section>
 
-			<section aria-label="Diagram lingkaran perolehan poin" class="card-pad">
-				<h2 class="text-xl font-bold text-slate-900 mb-5">Porsi suara</h2>
+			<section aria-label="Diagram lingkaran perolehan poin" class="recap !p-6">
+				<span class="lbl">PORSI SUARA</span>
 				{#if data.totalPoints === 0}
-					<p class="text-slate-500">Belum ada suara masuk.</p>
+					<p class="text-muted mt-4">Belum ada suara masuk.</p>
 				{:else}
-					<div class="flex flex-col sm:flex-row items-center gap-6">
+					<div class="flex flex-col sm:flex-row items-center gap-6 mt-4">
 						<svg width="140" height="140" viewBox="0 0 140 140" role="img" aria-label="Diagram lingkaran porsi poin per kandidat" class="shrink-0">
-							<circle cx="70" cy="70" r="54" fill="none" stroke="#f1f5f9" stroke-width="24" />
+							<circle cx="70" cy="70" r="54" fill="none" stroke="#e7e2d6" stroke-width="24" />
 							{#each donutSegments() as s}
 								<circle
 									cx="70"
@@ -149,9 +151,9 @@
 						<ul class="space-y-2.5 text-sm w-full">
 							{#each data.perCandidate as c, i}
 								<li class="flex items-center gap-2.5">
-									<span class="w-4 h-4 rounded shrink-0" style="background-color: {PALETTE[i % PALETTE.length]};" aria-hidden="true"></span>
-									<span class="flex-1 truncate text-slate-700">{c.name}</span>
-									<span class="text-slate-500 font-bold">{c.sharePct}%</span>
+									<span class="w-4 h-4 rounded-sm shrink-0" style="background-color: {PALETTE[i % PALETTE.length]};" aria-hidden="true"></span>
+									<span class="flex-1 truncate text-muted">{c.name}</span>
+									<span class="font-extrabold">{c.sharePct}%</span>
 								</li>
 							{/each}
 						</ul>
@@ -161,65 +163,65 @@
 		</div>
 
 		<section aria-label="Peringkat kandidat" class="mb-10">
-			<h2 class="section-title mb-4">Peringkat</h2>
-			<div class="table-wrap">
-				<table class="table">
+			<span class="lbl">PERINGKAT</span>
+			<div class="ledger-wrap mt-4">
+				<table class="ledger">
 					<thead>
 						<tr>
-							<th scope="col">Peringkat</th>
-							<th scope="col">Kandidat</th>
-							<th scope="col" class="text-right">Suara</th>
-							<th scope="col" class="text-right">Poin</th>
-							<th scope="col" class="text-right">Porsi</th>
+							<th scope="col">NO</th>
+							<th scope="col">KANDIDAT</th>
+							<th scope="col" class="text-right">SUARA</th>
+							<th scope="col" class="text-right">POIN</th>
+							<th scope="col" class="text-right">PORSI</th>
 						</tr>
 					</thead>
 					<tbody>
 						{#each data.perCandidate as c, i}
-							<tr class={i === 0 ? 'bg-blue-50/60' : ''}>
+							<tr class={i === 0 ? 'bg-picked' : ''}>
 								<td>
-									<span class="inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-bold {i === 0 ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-600'}">
+									<span class="num-circle !w-8 !h-8 !text-[13px] {i === 0 ? '!border-flag !text-flag' : ''}">
 										{i + 1}
 									</span>
 								</td>
-								<td class="font-semibold text-slate-900">{c.name}</td>
+								<td class="font-extrabold">{c.name}</td>
 								<td class="text-right">{c.votes}</td>
-								<td class="text-right font-bold text-slate-900">{c.points}</td>
-								<td class="text-right text-slate-500">{c.sharePct}%</td>
+								<td class="text-right font-extrabold">{c.points}</td>
+								<td class="text-right text-muted">{c.sharePct}%</td>
 							</tr>
 						{/each}
 					</tbody>
 				</table>
 			</div>
-			<div class="flex flex-wrap gap-x-6 gap-y-2 mt-4 text-sm text-slate-500">
+			<div class="flex flex-wrap gap-x-6 gap-y-2 mt-4 text-sm text-muted">
 				{#each data.byType as b}
-					<span>{b.type === 'teacher' ? 'Suara guru' : 'Suara siswa'}: <strong class="text-slate-900">{b.votes}</strong> ({b.points} poin)</span>
+					<span>{b.type === 'teacher' ? 'Suara guru' : 'Suara siswa'}: <strong class="text-ink">{b.votes}</strong> ({b.points} poin)</span>
 				{/each}
 			</div>
 		</section>
 
 		<section aria-label="Suara masuk terbaru">
-			<h2 class="section-title mb-4">Suara terbaru</h2>
+			<span class="lbl">SUARA TERBARU</span>
 			{#if data.recentVotes.length === 0}
-				<div class="card-pad text-slate-500">Belum ada suara masuk.</div>
+				<div class="recap text-muted mt-4">Belum ada suara masuk.</div>
 			{:else}
-				<div class="table-wrap">
-					<table class="table">
+				<div class="ledger-wrap mt-4">
+					<table class="ledger">
 						<thead>
 							<tr>
-								<th scope="col">Waktu</th>
-								<th scope="col">Kandidat</th>
-								<th scope="col">Tipe pemilih</th>
-								<th scope="col" class="text-right">Poin</th>
+								<th scope="col">WAKTU</th>
+								<th scope="col">KANDIDAT</th>
+								<th scope="col">TIPE PEMILIH</th>
+								<th scope="col" class="text-right">POIN</th>
 							</tr>
 						</thead>
 						<tbody>
 							{#each data.recentVotes as v}
 								<tr>
-									<td class="text-slate-500 whitespace-nowrap">{fmtTime(v.created_at)}</td>
-									<td class="font-semibold text-slate-900">{v.candidate_name}</td>
+									<td class="text-muted whitespace-nowrap">{fmtTime(v.created_at)}</td>
+									<td class="font-extrabold">{v.candidate_name}</td>
 									<td>
-										<span class={v.voter_type === 'teacher' ? 'badge-amber' : 'badge-blue'}>
-											{v.voter_type === 'teacher' ? 'Guru' : 'Siswa'}
+										<span class="text-xs font-extrabold tracking-widest {v.voter_type === 'teacher' ? 'text-flag' : 'text-muted'}">
+											{v.voter_type === 'teacher' ? 'GURU' : 'SISWA'}
 										</span>
 									</td>
 									<td class="text-right">{v.points}</td>
@@ -228,7 +230,7 @@
 						</tbody>
 					</table>
 				</div>
-				<p class="text-xs text-slate-500 mt-3">Kode token tidak ditampilkan di sini demi kerahasiaan pilihan pemilih.</p>
+				<p class="text-xs text-faint mt-3">Kode token tidak ditampilkan di sini demi kerahasiaan pilihan pemilih.</p>
 			{/if}
 		</section>
 	{/if}

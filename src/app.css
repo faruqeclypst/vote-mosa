@@ -1,7 +1,19 @@
 @import 'tailwindcss';
 
+/* ---------- Surat Suara — sistem desain ---------- */
+
 @theme {
-	--font-sans: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+	--font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+
+	--color-paper: #fbfaf7;
+	--color-desk: #e7e2d6;
+	--color-ink: #1b1b1b;
+	--color-flag: #c8102e;
+	--color-flag-dark: #9e0c24;
+	--color-muted: #6b675e;
+	--color-faint: #8a8478;
+	--color-line: #ddd6c7;
+	--color-picked: #fdf1f2;
 }
 
 html {
@@ -9,132 +21,281 @@ html {
 }
 
 body {
-	background-color: #f8fafc;
-	color: #0f172a;
+	background-color: var(--color-desk);
+	color: var(--color-ink);
 	font-family: var(--font-sans);
 	-webkit-font-smoothing: antialiased;
 	text-rendering: optimizeLegibility;
 }
 
 :focus-visible {
-	outline: 3px solid #2563eb;
+	outline: 3px solid var(--color-flag);
 	outline-offset: 2px;
-	border-radius: 6px;
+	border-radius: 4px;
 }
 
-/* ---------- Komponen dasar ---------- */
+/* ---------- Kertas surat suara ---------- */
 
 @layer components {
-	.btn-primary {
-		@apply inline-flex items-center justify-center gap-2 min-h-[52px] px-8 rounded-xl bg-blue-600 text-white font-semibold hover:bg-blue-700 active:bg-blue-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors;
+	.sheet {
+		@apply w-full max-w-[480px] mx-auto bg-paper px-7 py-9 sm:px-9;
+		box-shadow: 0 10px 40px rgba(27, 27, 27, 0.18);
 	}
 
-	.btn-secondary {
-		@apply inline-flex items-center justify-center gap-2 min-h-[52px] px-8 rounded-xl border border-slate-300 bg-white text-slate-800 font-semibold hover:bg-slate-100 active:bg-slate-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors;
+	.sheet-wide {
+		@apply w-full max-w-6xl mx-auto bg-paper px-5 py-8 sm:px-8;
+		box-shadow: 0 10px 40px rgba(27, 27, 27, 0.14);
 	}
 
-	.btn-danger {
-		@apply inline-flex items-center justify-center gap-2 min-h-[44px] px-5 rounded-xl bg-red-600 text-white text-sm font-semibold hover:bg-red-700 active:bg-red-800 disabled:opacity-50 transition-colors;
+	.kop {
+		@apply text-center;
 	}
 
-	.btn-danger-outline {
-		@apply inline-flex items-center justify-center gap-2 min-h-[44px] px-4 rounded-xl border border-red-200 bg-white text-red-700 text-sm font-semibold hover:bg-red-50 transition-colors;
+	.kop-school {
+		@apply text-xs font-bold text-flag mb-2.5;
+		letter-spacing: 0.28em;
+	}
+
+	.kop-title {
+		@apply text-3xl font-extrabold leading-tight;
+		letter-spacing: -0.01em;
+	}
+
+	.kop-period {
+		@apply mt-2 text-[13px] font-semibold text-muted;
+	}
+
+	.rule-double {
+		border-top: 3px solid var(--color-ink);
+		border-bottom: 1px solid var(--color-ink);
+		height: 5px;
+		@apply my-6;
+	}
+
+	.lbl {
+		@apply text-xs font-bold mb-2.5 block;
+		letter-spacing: 0.22em;
+	}
+
+	.hint {
+		@apply text-[13px] text-muted leading-relaxed mb-4;
+	}
+
+	/* ---------- Token ---------- */
+
+	.tokenboxes {
+		@apply flex gap-2 mb-8;
+	}
+
+	.tokenbox {
+		@apply flex-1 h-[54px] rounded-md bg-white text-center text-xl font-extrabold text-flag uppercase caret-flag;
+		border: 2px dashed var(--color-line);
+		transition: border-color 0.15s ease;
+	}
+
+	.tokenbox.filled {
+		border-style: solid;
+		border-color: var(--color-ink);
+	}
+
+	.tokenbox:focus {
+		border-style: solid;
+		border-color: var(--color-flag);
+		outline: none;
+	}
+
+	.tokenbox:disabled {
+		@apply bg-paper text-faint;
+	}
+
+	/* ---------- Baris surat suara ---------- */
+
+	.ballot-row {
+		@apply relative flex items-center gap-3.5 w-full text-left px-3 py-4 rounded-lg bg-white mb-3 transition-colors;
+		border: 1px solid var(--color-line);
+	}
+
+	.ballot-row:not(:disabled):hover {
+		border-color: var(--color-ink);
+	}
+
+	.ballot-row:disabled {
+		@apply opacity-45 cursor-not-allowed;
+	}
+
+	.ballot-row.picked {
+		background-color: var(--color-picked);
+		border-color: var(--color-flag);
+	}
+
+	.num-circle {
+		@apply shrink-0 w-[34px] h-[34px] rounded-full flex items-center justify-center text-[15px] font-extrabold;
+		border: 2px solid var(--color-ink);
+	}
+
+	.stamp {
+		@apply absolute right-3.5 top-1/2 font-extrabold text-flag rounded px-3 py-1.5 text-[15px] pointer-events-none;
+		border: 3px solid var(--color-flag);
+		letter-spacing: 0.18em;
+		transform: translateY(-50%) rotate(-12deg);
+		background: rgba(200, 16, 46, 0.06);
+		opacity: 0.92;
+		animation: stamp-in 0.28s cubic-bezier(0.2, 1.4, 0.4, 1) both;
+	}
+
+	.stamp-big {
+		@apply inline-block font-extrabold text-flag rounded-lg px-8 py-4 pointer-events-none;
+		border: 5px solid var(--color-flag);
+		font-size: 44px;
+		letter-spacing: 0.22em;
+		transform: rotate(-8deg);
+		background: rgba(200, 16, 46, 0.05);
+		animation: stamp-in-big 0.35s cubic-bezier(0.2, 1.4, 0.4, 1) both;
+	}
+
+	@keyframes stamp-in {
+		0% {
+			transform: translateY(-50%) rotate(-12deg) scale(2.2);
+			opacity: 0;
+		}
+		60% {
+			transform: translateY(-50%) rotate(-12deg) scale(0.94);
+			opacity: 1;
+		}
+		100% {
+			transform: translateY(-50%) rotate(-12deg) scale(1);
+			opacity: 0.92;
+		}
+	}
+
+	@keyframes stamp-in-big {
+		0% {
+			transform: rotate(-8deg) scale(2.4);
+			opacity: 0;
+		}
+		60% {
+			transform: rotate(-8deg) scale(0.94);
+			opacity: 1;
+		}
+		100% {
+			transform: rotate(-8deg) scale(1);
+			opacity: 1;
+		}
+	}
+
+	/* ---------- Tombol ---------- */
+
+	.btn-flag {
+		@apply inline-flex items-center justify-center gap-2 w-full min-h-[54px] px-8 rounded-md bg-flag text-white text-base font-extrabold tracking-wide transition-colors disabled:opacity-40 disabled:cursor-not-allowed;
+	}
+
+	.btn-flag:not(:disabled):hover {
+		background-color: var(--color-flag-dark);
+	}
+
+	.btn-line {
+		@apply inline-flex items-center justify-center gap-2 min-h-[48px] px-6 rounded-md border-2 border-ink bg-transparent text-ink text-sm font-bold transition-colors disabled:opacity-40 disabled:cursor-not-allowed;
+	}
+
+	.btn-line:not(:disabled):hover {
+		@apply bg-ink text-paper;
 	}
 
 	.btn-sm {
-		@apply min-h-[44px] px-4 text-sm;
+		@apply min-h-[40px] px-4 text-[13px] w-auto;
 	}
 
-	.card {
-		@apply bg-white rounded-2xl border border-slate-200 shadow-sm;
-	}
-
-	.card-pad {
-		@apply bg-white rounded-2xl border border-slate-200 shadow-sm p-6;
-	}
+	/* ---------- Form & berita acara ---------- */
 
 	.field-label {
-		@apply block text-sm font-semibold text-slate-800 mb-2;
+		@apply block text-sm font-bold text-ink mb-2;
 	}
 
-	.input-field {
-		@apply w-full min-h-[52px] px-4 rounded-xl border border-slate-300 bg-white text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-shadow;
+	.input {
+		@apply w-full min-h-[50px] px-4 rounded-md border bg-white text-ink placeholder:text-faint;
+		border-color: var(--color-line);
 	}
 
-	.alert {
-		@apply rounded-xl border px-4 py-3 text-sm font-medium;
+	.input:focus {
+		border-color: var(--color-flag);
+		outline: none;
+		box-shadow: 0 0 0 3px rgba(200, 16, 46, 0.12);
 	}
 
 	.alert-error {
-		@apply rounded-xl border px-4 py-3 text-sm font-medium bg-red-50 border-red-200 text-red-800;
+		@apply rounded-md border px-4 py-3 text-sm font-semibold bg-picked text-flag;
+		border-color: var(--color-flag);
 	}
 
-	.alert-success {
-		@apply rounded-xl border px-4 py-3 text-sm font-medium bg-emerald-50 border-emerald-200 text-emerald-800;
+	.alert-ok {
+		@apply rounded-md border px-4 py-3 text-sm font-semibold bg-paper text-ink;
+		border-color: var(--color-ink);
 	}
 
-	.alert-info {
-		@apply rounded-xl border px-4 py-3 text-sm font-medium bg-blue-50 border-blue-200 text-blue-800;
+	.ledger-wrap {
+		@apply overflow-x-auto rounded-md border bg-white;
+		border-color: var(--color-line);
 	}
 
-	.badge {
-		@apply inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold;
-	}
-
-	.badge-blue {
-		@apply inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-800;
-	}
-
-	.badge-emerald {
-		@apply inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800;
-	}
-
-	.badge-amber {
-		@apply inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-800;
-	}
-
-	.badge-slate {
-		@apply inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-600;
-	}
-
-	.table-wrap {
-		@apply overflow-x-auto rounded-xl border border-slate-200 bg-white;
-	}
-
-	.table {
+	.ledger {
 		@apply w-full text-sm bg-white;
 	}
 
-	.table thead tr {
-		@apply border-b border-slate-200 text-left bg-slate-50;
+	.ledger thead tr {
+		@apply text-left;
+		border-bottom: 2px solid var(--color-ink);
 	}
 
-	.table th {
-		@apply px-4 py-3 font-semibold text-slate-700 whitespace-nowrap;
+	.ledger th {
+		@apply px-4 py-3 font-extrabold text-ink whitespace-nowrap text-xs;
+		letter-spacing: 0.08em;
 	}
 
-	.table tbody tr {
-		@apply border-b border-slate-100 last:border-0 hover:bg-slate-50 transition-colors;
+	.ledger tbody tr {
+		@apply border-b last:border-0;
+		border-color: var(--color-line);
 	}
 
-	.table td {
-		@apply px-4 py-3 text-slate-800;
+	.ledger td {
+		@apply px-4 py-3 text-ink;
 	}
 
-	.tab-btn {
-		@apply min-h-[52px] px-4 text-sm font-semibold whitespace-nowrap text-slate-500 border-b-[3px] border-transparent -mb-px hover:text-slate-900 transition-colors;
+	.ledger tbody tr:hover {
+		background-color: var(--color-paper);
 	}
 
-	.tab-btn-active {
-		@apply min-h-[52px] px-4 text-sm font-semibold whitespace-nowrap text-blue-700 border-b-[3px] border-blue-600 -mb-px;
+	.tab {
+		@apply min-h-[48px] px-4 text-sm font-bold whitespace-nowrap text-muted border-b-[3px] border-transparent -mb-px transition-colors;
 	}
 
-	.section-title {
-		@apply text-2xl font-bold tracking-tight text-slate-900;
+	.tab:hover {
+		@apply text-ink;
 	}
 
-	.page-title {
-		@apply text-3xl font-bold tracking-tight text-slate-900;
+	.tab-active {
+		@apply min-h-[48px] px-4 text-sm font-extrabold whitespace-nowrap text-flag border-b-[3px] border-flag -mb-px;
+	}
+
+	.recap {
+		@apply bg-white rounded-md p-5;
+		border: 1px solid var(--color-line);
+	}
+
+	.recap-num {
+		@apply text-4xl font-extrabold tracking-tight text-ink;
+	}
+
+	.recap-label {
+		@apply text-xs font-bold text-muted mt-1 block;
+		letter-spacing: 0.14em;
+	}
+
+	.section-head {
+		@apply text-xl font-extrabold tracking-tight text-ink;
+	}
+
+	.footnote {
+		@apply mt-4 text-center text-xs text-faint leading-relaxed;
 	}
 }
 
@@ -144,5 +305,15 @@ body {
 	*::after {
 		animation-duration: 0.01ms !important;
 		transition-duration: 0.01ms !important;
+	}
+	.stamp,
+	.stamp-big {
+		animation: none;
+		opacity: 0.92;
+		transform: translateY(-50%) rotate(-12deg);
+	}
+	.stamp-big {
+		transform: rotate(-8deg);
+		opacity: 1;
 	}
 }

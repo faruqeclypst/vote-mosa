@@ -58,34 +58,37 @@
 	onMount(load);
 </script>
 
-<h1 class="page-title mb-6">Pengaturan</h1>
+<div class="mb-6">
+	<span class="lbl !mb-1">KETETAPAN PANITIA</span>
+	<h1 class="section-head">Pengaturan</h1>
+</div>
 
 {#if loading}
-	<p class="text-slate-500">Memuat pengaturan...</p>
+	<p class="text-muted">Memuat pengaturan...</p>
 {:else}
 	<form onsubmit={save} class="max-w-xl space-y-6">
-		<fieldset class="card-pad">
-			<legend class="text-lg font-bold text-slate-900 px-1">Status voting</legend>
+		<fieldset class="recap !p-6">
+			<legend class="text-lg font-extrabold px-1">Status voting</legend>
 			<label class="flex items-start gap-3 cursor-pointer">
-				<input type="checkbox" bind:checked={votingOpen} class="mt-1 w-6 h-6 accent-blue-600" />
+				<input type="checkbox" bind:checked={votingOpen} class="mt-1 w-6 h-6 accent-[#c8102e]" />
 				<span>
-					<span class="font-semibold text-slate-900 block">Voting dibuka</span>
-					<span class="text-sm text-slate-500">
+					<span class="font-extrabold block">Voting dibuka</span>
+					<span class="text-sm text-muted">
 						Jika dimatikan, pemilih melihat pesan voting ditutup dan tidak bisa mengirim suara.
 					</span>
 				</span>
 			</label>
 		</fieldset>
 
-		<fieldset class="card-pad space-y-4">
-			<legend class="text-lg font-bold text-slate-900 px-1">Identitas pemilihan</legend>
+		<fieldset class="recap !p-6 space-y-4">
+			<legend class="text-lg font-extrabold px-1">Identitas pemilihan</legend>
 			<div>
 				<label for="s-title" class="field-label">Judul pemilihan</label>
-				<input id="s-title" type="text" bind:value={title} required minlength="2" maxlength="120" class="input-field" />
+				<input id="s-title" type="text" bind:value={title} required minlength="2" maxlength="120" class="input" />
 			</div>
 			<div>
 				<label for="s-school" class="field-label">Nama sekolah</label>
-				<input id="s-school" type="text" bind:value={school} required minlength="2" maxlength="120" class="input-field" />
+				<input id="s-school" type="text" bind:value={school} required minlength="2" maxlength="120" class="input" />
 			</div>
 		</fieldset>
 
@@ -93,9 +96,9 @@
 			<p role="alert" class="alert-error">{error}</p>
 		{/if}
 		{#if saved}
-			<p role="status" class="alert-success">Pengaturan tersimpan.</p>
+			<p role="status" class="alert-ok">Pengaturan tersimpan.</p>
 		{/if}
-		<button type="submit" disabled={saving} class="btn-primary">
+		<button type="submit" disabled={saving} class="btn-flag !w-auto px-8">
 			{saving ? 'Menyimpan...' : 'Simpan pengaturan'}
 		</button>
 	</form>
