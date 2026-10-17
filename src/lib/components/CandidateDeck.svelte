@@ -1,9 +1,12 @@
 <script lang="ts">
 	import type { Candidate } from '$lib/db';
+	import Photo from './Photo.svelte';
 
 	let { candidates, onSelect }: { candidates: Candidate[]; onSelect: (c: Candidate) => void } =
 		$props();
 
+	// svelte-ignore state_referenced_locally: deck di-mount ulang via {#key} setiap sesi voting baru,
+	// jadi inisialisasi dari props di sini disengaja dan tidak berubah selama komponen hidup.
 	let queue = $state(candidates.map((_, i) => i));
 	let skipped = $state<number[]>([]);
 	let dx = $state(0);
@@ -69,16 +72,6 @@
 		}
 	}
 
-	function onKeyDown(e: KeyboardEvent) {
-		if (e.key === 'ArrowRight') {
-			e.preventDefault();
-			commit('right');
-		} else if (e.key === 'ArrowLeft') {
-			e.preventDefault();
-			commit('left');
-		}
-	}
-
 	function reviewSkipped() {
 		queue = [...skipped];
 		skipped = [];
@@ -99,16 +92,11 @@
 	</p>
 
 	{#if top}
-		<div
-			role="group"
-			tabindex="0"
-			onkeydown={onKeyDown}
-			aria-label="Kartu kandidat. Tekan panah kanan untuk memilih, panah kiri untuk melewati."
-			class="relative h-[470px] sm:h-[500px] touch-none select-none"
-		>
+		<div class="relative h-[470px] sm:h-[500px] touch-none select-none">
 			{#each ordered as idx (candidates[idx].id)}
 				{@const depth = visible.indexOf(idx)}
 				{@const isTop = idx === topIndex}
+				<!-- svelte-ignore a11y_no_static_element_interactions: kartu swipe custom; padanan keyboard penuh tersedia lewat tombol Lewati/Pilih di bawah deck -->
 				<div
 					class="absolute inset-0 rounded-2xl border-2 border-ink bg-white overflow-hidden"
 					style={isTop
@@ -137,25 +125,13 @@
 					{/if}
 
 					<div class="h-full flex flex-col">
-						{#if candidates[idx].photo_url}
-							<img
-								src={candidates[idx].photo_url}
-								alt="Foto {candidates[idx].name}"
-								class="w-full h-52 sm:h-60 object-cover border-b-2 border-ink"
-								draggable="false"
-							/>
-						{:else}
-							<div
-								class="w-full h-52 sm:h-60 bg-paper-deep border-b-2 border-ink flex items-center justify-center"
-								aria-hidden="true"
-							>
-								<span
-									class="font-display text-6xl text-brand w-24 h-24 rounded-full border-2 border-brand flex items-center justify-center"
-								>
-									{candidates[idx].name.charAt(0)}
-								</span>
-							</div>
-						{/if}
+						<Photo
+							src={candidates[idx].photo_url}
+							alt="Foto {candidates[idx].name}"
+							name={candidates[idx].name}
+							imgClass="w-full h-52 sm:h-60 object-cover border-b-2 border-ink"
+							fallbackClass="w-full h-52 sm:h-60 bg-paper-deep border-b-2 border-ink"
+						/>
 						<div class="p-5 overflow-y-auto flex-1">
 							<div class="flex items-center gap-3 mb-2">
 								<span

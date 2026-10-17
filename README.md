@@ -1,76 +1,98 @@
-# Pemilihan OSIS
+# PEMOS — Pemilihan OSIS
 
-Aplikasi voting digital pemilihan ketua OSIS. Dibangun ulang dari nol dengan
-SvelteKit + TypeScript + Tailwind CSS, database Neon Postgres, deploy di Vercel.
+Aplikasi voting digital pemilihan ketua OSIS. SvelteKit + TypeScript + Tailwind CSS,
+PostgreSQL (TCP lokal via driver `postgres`, tanpa ORM), jalan di Docker di belakang
+Caddy reverse proxy: **https://pemos.alfaruqasri.my.id**.
 
-Alur pemilih: masukkan kode token (5 karakter) → geser kartu kandidat ala Tinder
+Alur pemilih: masukkan kode token (5 karakter) → geser kartu kandidat
 (kanan = pilih, kiri = lewati) → konfirmasi → suara tercatat. Token guru bernilai
 2 poin, token siswa 1 poin. Satu token hanya bisa dipakai sekali.
 
-## Cara setup
+## Token contoh (data dummy)
 
-### 1. Buat database Neon
+Setelah seed, token ini selalu bisa dipakai untuk mencoba voting:
 
-1. Buat project baru di [Neon](https://neon.tech) (paket gratis cukup).
-2. Buka **SQL Editor**, tempel seluruh isi `schema.sql`, jalankan.
-   Skema idempoten, aman dijalankan ulang. Tabel yang dibuat: `admins`,
-   `candidates`, `tokens`, `votes`, `sessions`, `settings` (dengan seed awal).
-3. Salin **connection string** (diawali `postgresql://...sslmode=require`).
+| Kode   | Tipe   | Label |
+|--------|--------|-------|
+| ABCDE  | Siswa  | X-1   |
+| GURU1  | Guru   | Guru  |
+| SISWA  | Siswa  | XII-6 |
 
-### 2. Jalankan lokal
+## Deploy di VPS (Docker)
+
+```bash
+# di VPS 43.134.175.87, mis. /opt/pemos
+cp .env.example .env
+# isi POSTGRES_PASSWORD di .env dengan password kuat
+
+docker compose up -d --build
+
+# siapkan database (sekali saja)
+docker compose exec -T pemos-postgres psql -U pemos -d pemos < schema.sql
+docker compose exec -T pemos-postgres psql -U pemos -d pemos < seed.sql
+```
+
+Lalu tambahkan blok `caddy-snippet.txt` ke Caddyfile dan reload Caddy:
+
+```bash
+caddy reload
+```
+
+Cek: `curl -s -o /dev/null -w "%{http_code}\n" http://127.0.0.1:3103/`
+seharusnya `200`.
+
+### Buat admin pertama
+
+1. Buka https://pemos.alfaruqasri.my.id/admin
+2. Karena tabel `admins` masih kosong, otomatis diarahkan ke `/admin/setup`.
+3. Isi nama, email, password (min 8 karakter) → jadi super admin, langsung login.
+
+## Jalankan lokal (tanpa docker)
+
+Butuh PostgreSQL lokal. Buat database `pemos`, lalu:
 
 ```bash
 npm install --no-bin-links
-cp .env.example .env   # lalu isi DATABASE_URL
-# dev server (npm run dev tidak jalan di VM ini karena --no-bin-links):
+cp .env.example .env   # isi DATABASE_URL, mis. postgres://pemos:pass@localhost:5432/pemos
+psql $DATABASE_URL -f schema.sql
+psql $DATABASE_URL -f seed.sql
 node node_modules/vite/bin/vite.js dev
-# build produksi:
-node node_modules/@sveltejs/kit/svelte-kit.js sync && node node_modules/vite/bin/vite.js build
 ```
 
-Buka http://localhost:5173. Kunjungan pertama ke `/admin` mengarah ke
-`/admin/setup` untuk membuat super admin pertama.
-
-### 3. Deploy ke Vercel
-
-1. Push repo ini ke GitHub.
-2. Import project di Vercel, tambahkan Environment Variable `DATABASE_URL`
-   (isi connection string Neon).
-3. Deploy. Tidak perlu konfigurasi build khusus, `svelte.config.js` sudah
-   memakai `@sveltejs/adapter-vercel`.
+(`npm run dev` tidak jalan di VM ini karena install memakai `--no-bin-links`.)
 
 ## Struktur
 
 ```
 src/
   lib/
-    db.ts        # koneksi Neon (@neondatabase/serverless), tanpa ORM
+    db.ts        # driver postgres (porsager), SQL murni tanpa ORM
     auth.ts      # session admin, bcryptjs
-    api.ts       # helper validasi untuk endpoint admin
+    api.ts       # helper validasi endpoint admin
     components/
+      Photo.svelte           # foto kandidat + fallback avatar inisial (onerror)
       CandidateDeck.svelte   # deck swipe kandidat (pointer events, tanpa lib)
-      admin/                 # 6 tab dashboard: Stats, Candidates, Tokens,
-                             # Results, Settings, Admins
+      admin/                 # 6 tab: Ringkasan, Kandidat, Token, Hasil, Pengaturan, Kelola Admin
   routes/
     +page.svelte             # landing
     vote/                    # alur voting 4 langkah
-    api/vote/                # validate, submit (transaksional, race-safe)
+    api/vote/                # validate, submit (transaksional: SELECT..FOR UPDATE + UNIQUE)
     admin/                   # setup, login, dashboard
-    api/admin/               # login, logout, setup, stats, results,
-                             # candidates, tokens, settings, admins
-schema.sql                   # skema database idempoten + seed settings
+    api/admin/               # login, logout, setup, stats, results, candidates,
+                             # tokens (+generate/export CSV), settings, admins
+schema.sql                   # skema idempoten
+seed.sql                     # data dummy: 3 kandidat, ~30 token, ~15 votes
+Dockerfile / docker-compose.yml / .dockerignore / caddy-snippet.txt
 ```
 
-## Catatan keamanan
+## Catatan
 
-- Password admin di-hash dengan bcrypt (bcryptjs, murni JS).
-- Session admin disimpan di tabel `sessions`, cookie `sid` httpOnly,
-  SameSite=Lax, Secure saat produksi, kedaluwarsa 12 jam.
-- Submit suara berjalan dalam transaksi Postgres dengan `SELECT ... FOR UPDATE`
-  pada token, plus constraint UNIQUE di `votes.token_id` sebagai pengaman ganda.
-- Tabel hasil suara tidak pernah menampilkan kode token, hanya tipe pemilih.
-
-## Yang belum diverifikasi
-
-Butuh `DATABASE_URL` asli untuk: menjalankan `schema.sql` di Neon, lalu smoke
-test (setup admin → tambah kandidat → generate token → voting → cek hasil).
+- Password admin di-hash bcrypt (bcryptjs, murni JS).
+- Session admin di tabel `sessions`, cookie `sid` httpOnly, SameSite=Lax,
+  Secure saat produksi, kedaluwarsa 12 jam.
+- Submit suara dalam transaksi Postgres (`SELECT ... FOR UPDATE` pada token)
+  plus constraint `UNIQUE(token_id)` sebagai pengaman ganda anti double-vote.
+- Tabel hasil tidak menampilkan kode token, hanya tipe pemilih.
+- Foto kandidat masih URL string biasa; komponen `Photo.svelte` selalu punya
+  fallback avatar inisial bila URL rusak. Migrasi ke Cloudflare R2 tahap berikutnya.
+- SQL ditulis murni (tanpa fitur khusus driver) supaya mudah pindah ke Neon/Vercel nanti.

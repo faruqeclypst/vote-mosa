@@ -6,7 +6,7 @@ export const load: PageServerLoad = async () => {
 		const sql = db();
 		const rows = await sql`SELECT key, value FROM settings WHERE key IN ('voting_open', 'election_title', 'school_name')`;
 		const settings: Record<string, string> = {};
-		for (const r of rows as { key: string; value: string }[]) settings[r.key] = r.value;
+		for (const r of rows as unknown as { key: string; value: string }[]) settings[r.key] = r.value;
 		return {
 			title: settings.election_title ?? 'Pemilihan Ketua OSIS',
 			school: settings.school_name ?? 'SMAN Modal Bangsa',

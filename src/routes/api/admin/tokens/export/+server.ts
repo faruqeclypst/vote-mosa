@@ -11,7 +11,7 @@ export const GET: RequestHandler = async (event) => {
 
 	const sql = db();
 	const conditions: string[] = [];
-	const params: unknown[] = [];
+	const params: (string | number | boolean)[] = [];
 	let i = 1;
 	if (type === 'student' || type === 'teacher') {
 		conditions.push(`type = $${i++}`);

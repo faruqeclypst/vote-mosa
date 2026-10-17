@@ -1,0 +1,33 @@
+services:
+  app:
+    build: .
+    container_name: pemos-osis-app
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgres://pemos:${POSTGRES_PASSWORD:?isi POSTGRES_PASSWORD di .env}/pemos-postgres:5432/pemos
+      NODE_ENV: production
+    ports:
+      - "127.0.0.1:3103:3103"
+    depends_on:
+      pemos-postgres:
+        condition: service_healthy
+
+  pemos-postgres:
+    image: postgres:16-alpine
+    container_name: pemos-osis-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: pemos
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?isi POSTGRES_PASSWORD di .env}
+      POSTGRES_DB: pemos
+    volumes:
+      - pemos-pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U pemos -d pemos"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    # Tanpa "ports": postgres hanya bisa diakses dari dalam jaringan docker
+
+volumes:
+  pemos-pgdata:

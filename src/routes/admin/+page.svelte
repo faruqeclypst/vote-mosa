@@ -7,7 +7,7 @@
 	import ResultsTab from '$lib/components/admin/ResultsTab.svelte';
 	import SettingsTab from '$lib/components/admin/SettingsTab.svelte';
 	import AdminsTab from '$lib/components/admin/AdminsTab.svelte';
-	import type { LayoutData } from '../$types';
+	import type { LayoutData } from './$types';
 
 	let { data }: { data: LayoutData } = $props();
 

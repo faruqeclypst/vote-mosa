@@ -15,7 +15,7 @@ export const GET: RequestHandler = async (event) => {
 
 	const sql = db();
 	const conditions: string[] = [];
-	const params: unknown[] = [];
+	const params: (string | number | boolean)[] = [];
 	let i = 1;
 	if (type === 'student' || type === 'teacher') {
 		conditions.push(`type = $${i++}`);
@@ -32,11 +32,21 @@ export const GET: RequestHandler = async (event) => {
 	}
 	const where = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
 
-	const countRows = (await sql.unsafe(`SELECT COUNT(*)::int AS n FROM tokens ${where}`, params)) as { n: number }[];
+	const countRows = (await sql.unsafe(`SELECT COUNT(*)::int AS n FROM tokens ${where}`, params)) as unknown as {
+		n: number;
+	}[];
 	const items = (await sql.unsafe(
 		`SELECT id, code, type, label, is_used, used_at, created_at FROM tokens ${where} ORDER BY created_at DESC LIMIT $${i} OFFSET $${i + 1}`,
 		[...params, limit, offset]
-	)) as unknown[];
+	)) as unknown as {
+		id: string;
+		code: string;
+		type: 'student' | 'teacher';
+		label: string | null;
+		is_used: boolean;
+		used_at: string | null;
+		created_at: string;
+	}[];
 
 	return json({ items, total: countRows[0].n, limit, offset });
 };

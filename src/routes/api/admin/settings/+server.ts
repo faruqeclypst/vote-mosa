@@ -11,7 +11,7 @@ export const GET: RequestHandler = async (event) => {
 	const sql = db();
 	const rows = await sql`SELECT key, value FROM settings`;
 	const out: Record<string, string> = {};
-	for (const r of rows as { key: string; value: string }[]) out[r.key] = r.value;
+	for (const r of rows as unknown as { key: string; value: string }[]) out[r.key] = r.value;
 	return json({ settings: out });
 };
 

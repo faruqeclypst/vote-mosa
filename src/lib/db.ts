@@ -1,13 +1,19 @@
-import { neon } from '@neondatabase/serverless';
+import postgres, { type Sql } from 'postgres';
 
-let cached: ReturnType<typeof neon> | null = null;
+let cached: Sql | null = null;
 
-export function db() {
+export function db(): Sql {
 	const url = process.env.DATABASE_URL;
 	if (!url) {
 		throw new Error('DATABASE_URL belum di-set. Lihat .env.example');
 	}
-	if (!cached) cached = neon(url);
+	if (!cached) {
+		cached = postgres(url, {
+			max: 10,
+			idle_timeout: 20,
+			connect_timeout: 10
+		});
+	}
 	return cached;
 }
 

@@ -6,7 +6,7 @@ export const load: PageServerLoad = async () => {
 		const sql = db();
 		const settingsRows = await sql`SELECT key, value FROM settings WHERE key IN ('voting_open', 'election_title', 'school_name')`;
 		const settings: Record<string, string> = {};
-		for (const r of settingsRows as { key: string; value: string }[]) settings[r.key] = r.value;
+		for (const r of settingsRows as unknown as { key: string; value: string }[]) settings[r.key] = r.value;
 
 		const votingOpen = settings.voting_open === 'true';
 		let candidates: Candidate[] = [];
@@ -16,7 +16,7 @@ export const load: PageServerLoad = async () => {
 				FROM candidates
 				ORDER BY sort_order ASC, created_at ASC
 			`;
-			candidates = rows as Candidate[];
+			candidates = rows as unknown as Candidate[];
 		}
 		return {
 			title: settings.election_title ?? 'Pemilihan Ketua OSIS',

@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import Photo from '$lib/components/Photo.svelte';
 
 	interface Candidate {
 		id: string;
@@ -132,7 +133,16 @@
 			<label for="c-photo" class="block font-semibold mb-2">URL foto</label>
 			<input id="c-photo" type="url" bind:value={photo_url} placeholder="https://..." class="w-full min-h-[52px] px-4 rounded-lg border-2 border-ink bg-white" />
 			{#if photo_url.trim()}
-				<img src={photo_url.trim()} alt="Pratinjau foto kandidat" class="mt-3 w-32 h-32 object-cover rounded-lg border-2 border-ink" onerror={(e) => ((e.currentTarget as HTMLImageElement).style.display = 'none')} onload={(e) => ((e.currentTarget as HTMLImageElement).style.display = '')} />
+				<div class="mt-3 w-32">
+					<Photo
+						src={photo_url.trim()}
+						alt="Pratinjau foto kandidat"
+						name={name || '?'}
+						imgClass="w-32 h-32 object-cover rounded-lg border-2 border-ink"
+						fallbackClass="w-32 h-32 rounded-lg border-2 border-ink bg-paper-deep"
+						initialClass="font-display text-4xl text-brand w-16 h-16 rounded-full border-2 border-brand flex items-center justify-center"
+					/>
+				</div>
 			{/if}
 		</div>
 		<div class="sm:col-span-2">
@@ -168,13 +178,14 @@
 	<div class="grid gap-4 md:grid-cols-2">
 		{#each items as c (c.id)}
 			<article class="rounded-xl border border-line bg-white p-5 flex gap-4">
-				{#if c.photo_url}
-					<img src={c.photo_url} alt="Foto {c.name}" class="w-20 h-20 rounded-lg object-cover border border-line shrink-0" />
-				{:else}
-					<div class="w-20 h-20 rounded-lg bg-paper-deep border border-line flex items-center justify-center shrink-0" aria-hidden="true">
-						<span class="font-display text-3xl text-brand">{c.name.charAt(0)}</span>
-					</div>
-				{/if}
+				<Photo
+					src={c.photo_url}
+					alt="Foto {c.name}"
+					name={c.name}
+					imgClass="w-20 h-20 rounded-lg object-cover border border-line shrink-0"
+					fallbackClass="w-20 h-20 rounded-lg bg-paper-deep border border-line shrink-0"
+					initialClass="font-display text-3xl text-brand"
+				/>
 				<div class="flex-1 min-w-0">
 					<p class="font-semibold truncate">{c.name}</p>
 					<p class="text-sm text-ink-soft">Urutan {c.sort_order}</p>

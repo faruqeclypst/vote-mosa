@@ -32,7 +32,7 @@ export const GET: RequestHandler = async (event) => {
 		`
 	]);
 
-	const rows = perCandidate as { points: number }[];
+	const rows = perCandidate as unknown as { points: number }[];
 	const totalPoints = rows.reduce((s, r) => s + r.points, 0);
 
 	return json({

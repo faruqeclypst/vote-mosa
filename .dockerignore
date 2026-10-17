@@ -1,0 +1,13 @@
+node_modules
+.svelte-kit
+build
+.git
+.gitignore
+.env
+.env.local
+.vercel
+Dockerfile
+docker-compose.yml
+caddy-snippet.txt
+.DS_Store
+README.md

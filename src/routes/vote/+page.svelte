@@ -1,5 +1,6 @@
 <script lang="ts">
 	import CandidateDeck from '$lib/components/CandidateDeck.svelte';
+	import Photo from '$lib/components/Photo.svelte';
 	import type { Candidate } from '$lib/db';
 	import type { PageData } from './$types';
 
@@ -167,9 +168,13 @@
 					<p class="text-ink-soft mb-6">Pastikan ini kandidat yang kamu dukung. Suara tidak bisa diubah setelah dikirim.</p>
 
 					<article class="rounded-2xl border-2 border-ink bg-white overflow-hidden mb-6">
-						{#if selected.photo_url}
-							<img src={selected.photo_url} alt="Foto {selected.name}" class="w-full h-56 object-cover border-b-2 border-ink" />
-						{/if}
+						<Photo
+							src={selected.photo_url}
+							alt="Foto {selected.name}"
+							name={selected.name}
+							imgClass="w-full h-56 object-cover border-b-2 border-ink"
+							fallbackClass="w-full h-40 bg-paper-deep border-b-2 border-ink"
+						/>
 						<div class="p-5">
 							<h2 class="font-display text-2xl tracking-tight">{selected.name}</h2>
 							{#if selected.vision}

@@ -45,7 +45,7 @@ export const POST: RequestHandler = async (event) => {
 			ON CONFLICT (code) DO NOTHING
 			RETURNING code
 		`;
-		for (const r of rows as { code: string }[]) inserted.push(r.code);
+		for (const r of rows as unknown as { code: string }[]) inserted.push(r.code);
 	}
 
 	return json({ ok: true, generated: inserted.length, codes: inserted });
