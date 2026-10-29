@@ -37,7 +37,7 @@
 	let filterLabel = $state('');
 	let search = $state('');
 	let page = $state(0);
-	let pageSize = $state(50);
+	let pageSize = $state(10);
 
 	let groups = $state<TokenGroup[]>([]);
 	const classGroups = $derived(groups.filter((g) => g.type === 'student'));
@@ -348,6 +348,7 @@
 	<div class="flex items-center gap-3">
 		<label for="f-size" class="text-sm text-muted">Per halaman</label>
 		<select id="f-size" bind:value={pageSize} onchange={changePageSize} class="input !w-auto min-h-[38px] text-sm">
+			<option value={10}>10</option>
 			<option value={25}>25</option>
 			<option value={50}>50</option>
 			<option value={100}>100</option>
