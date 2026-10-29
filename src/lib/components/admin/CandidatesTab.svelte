@@ -3,7 +3,7 @@
 	import Photo from '$lib/components/Photo.svelte';
 	import Pager from '$lib/components/admin/Pager.svelte';
 	import { compressImage, formatBytes } from '$lib/image';
-	import { ImagePlus, Pencil, Trash2, X } from '@lucide/svelte';
+	import { ImagePlus, LoaderCircle, Pencil, Trash2, X } from '@lucide/svelte';
 
 	interface Candidate {
 		id: string;
@@ -211,44 +211,62 @@
 				<label for="c-name" class="field-label">Nama</label>
 				<input id="c-name" type="text" bind:value={name} required minlength="2" maxlength="120" class="input" />
 			</div>
-			<div class="grid grid-cols-2 gap-3">
-				<div>
+			<div class="flex gap-3 items-start">
+				<div class="flex-1 min-w-0">
 					<label for="c-election" class="field-label">Pemilihan</label>
 					<select id="c-election" bind:value={election} class="input">
 						<option value="osis">OSIS</option>
 						<option value="mpk">MPK</option>
 					</select>
 				</div>
-				<div>
-					<span class="field-label" id="c-photo-label">Foto kandidat</span>
-					<div class="flex items-center gap-2">
-						{#if previewSrc}
-							<Photo
-								src={previewSrc}
-								alt="Pratinjau foto kandidat"
-								name={name || '?'}
-								imgClass="w-10 h-10 object-cover rounded-md border border-line shrink-0"
-								fallbackClass="w-10 h-10 rounded-md shrink-0"
-								initialClass="text-base font-extrabold text-flag"
-							/>
-						{/if}
-						<label for="c-photo-file" class="btn-line btn-sm cursor-pointer">
-							<ImagePlus class="h-4 w-4" />
-							{photoBusy ? 'Mengompres...' : 'Unggah foto'}
+				<div class="shrink-0">
+					<span class="field-label" id="c-photo-label">Foto</span>
+					<div class="relative h-[50px] w-[50px]">
+						<label
+							for="c-photo-file"
+							class="block h-[50px] w-[50px] rounded-md border bg-white cursor-pointer overflow-hidden"
+							aria-label="Unggah foto kandidat"
+							title="Unggah foto kandidat"
+						>
+							{#if previewSrc}
+								<Photo
+									src={previewSrc}
+									alt=""
+									name={name || '?'}
+									imgClass="h-full w-full object-cover"
+									fallbackClass="h-full w-full"
+									initialClass="text-lg font-extrabold text-flag"
+								/>
+							{:else}
+								<span class="flex h-full w-full items-center justify-center text-muted">
+									<ImagePlus class="h-5 w-5" aria-hidden="true" />
+								</span>
+							{/if}
+							{#if photoBusy}
+								<span class="absolute inset-0 flex items-center justify-center bg-white/70">
+									<LoaderCircle class="h-5 w-5 animate-spin text-flag" aria-hidden="true" />
+								</span>
+							{/if}
 						</label>
 						<input id="c-photo-file" type="file" accept="image/*" class="sr-only" bind:this={fileInput} onchange={onPickPhoto} aria-labelledby="c-photo-label" />
-						{#if previewSrc}
-							<button type="button" onclick={removePhoto} class="btn-line btn-sm !border-flag !text-flag" aria-label="Hapus foto kandidat">
-								<X class="h-4 w-4" />
+						{#if previewSrc && !photoBusy}
+							<button
+								type="button"
+								onclick={removePhoto}
+								class="absolute -top-2 -right-2 flex h-5 w-5 items-center justify-center rounded-full border border-flag bg-paper text-flag"
+								aria-label="Hapus foto kandidat"
+								title="Hapus foto"
+							>
+								<X class="h-3 w-3" aria-hidden="true" />
 							</button>
 						{/if}
 					</div>
-					{#if photoInfo}
-						<p class="text-xs text-muted mt-1">{photoInfo}</p>
-					{/if}
 					<input id="c-photo" type="hidden" bind:value={photo_url} />
 				</div>
 			</div>
+			{#if photoInfo}
+				<p class="text-xs text-muted">{photoInfo}</p>
+			{/if}
 			<div>
 				<label for="c-vision" class="field-label">Visi</label>
 				<textarea id="c-vision" bind:value={vision} rows="2" maxlength="2000" class="input min-h-[64px] py-2.5"></textarea>
