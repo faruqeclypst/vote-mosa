@@ -9,6 +9,7 @@ export const GET: RequestHandler = async (event) => {
 
 	const type = event.url.searchParams.get('type');
 	const used = event.url.searchParams.get('used');
+	const label = (event.url.searchParams.get('label') ?? '').trim().slice(0, 80);
 	const q = (event.url.searchParams.get('q') ?? '').trim().toUpperCase().slice(0, 20);
 	const limit = Math.min(Math.max(parseInt(event.url.searchParams.get('limit') ?? '50', 10) || 50, 1), 200);
 	const offset = Math.max(parseInt(event.url.searchParams.get('offset') ?? '0', 10) || 0, 0);
@@ -25,6 +26,10 @@ export const GET: RequestHandler = async (event) => {
 		conditions.push(`is_used = $${i++}`);
 		params.push(used === 'true');
 	}
+	if (label) {
+		conditions.push(`UPPER(COALESCE(label, '')) = UPPER($${i++})`);
+		params.push(label);
+	}
 	if (q) {
 		conditions.push(`(code LIKE $${i} OR UPPER(label) LIKE $${i})`);
 		params.push(`%${q}%`);
@@ -36,7 +41,7 @@ export const GET: RequestHandler = async (event) => {
 		n: number;
 	}[];
 	const items = (await sql.unsafe(
-		`SELECT id, code, type, label, is_used, used_at, created_at FROM tokens ${where} ORDER BY created_at DESC LIMIT $${i} OFFSET $${i + 1}`,
+		`SELECT id, code, type, label, is_used, used_at, created_at FROM tokens ${where} ORDER BY created_at DESC, code ASC LIMIT $${i} OFFSET $${i + 1}`,
 		[...params, limit, offset]
 	)) as unknown as {
 		id: string;
