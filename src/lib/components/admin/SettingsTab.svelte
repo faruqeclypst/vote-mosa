@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import { TriangleAlert, X } from '@lucide/svelte';
 
 	let osisOpen = $state(true);
 	let mpkOpen = $state(false);
@@ -55,6 +56,50 @@
 			error = 'Tidak bisa terhubung ke server.';
 		} finally {
 			saving = false;
+		}
+	}
+
+	let resetScope = $state<'votes_tokens' | 'all' | null>(null);
+	let resetText = $state('');
+	let resetting = $state(false);
+	let resetError = $state('');
+	let resetDone = $state('');
+
+	function openReset(scope: 'votes_tokens' | 'all') {
+		resetScope = scope;
+		resetText = '';
+		resetError = '';
+		resetDone = '';
+	}
+
+	function closeReset() {
+		if (!resetting) resetScope = null;
+	}
+
+	async function doReset() {
+		if (!resetScope || resetText !== 'RESET' || resetting) return;
+		const scope = resetScope;
+		resetting = true;
+		resetError = '';
+		try {
+			const res = await fetch('/api/admin/reset', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ scope, confirm: resetText })
+			});
+			const body = await res.json();
+			if (!res.ok) {
+				resetError = body.error ?? 'Reset gagal.';
+				return;
+			}
+			resetDone =
+				`Reset selesai: ${body.deleted.votes} suara dan ${body.deleted.tokens} token dihapus` +
+				(scope === 'all' ? `, plus ${body.deleted.candidates} kandidat.` : '.');
+			resetScope = null;
+		} catch {
+			resetError = 'Tidak bisa terhubung ke server.';
+		} finally {
+			resetting = false;
 		}
 	}
 
@@ -139,4 +184,86 @@
 			{saving ? 'Menyimpan...' : 'Simpan pengaturan'}
 		</button>
 	</form>
+
+	<section class="recap !p-6 mt-8" aria-label="Reset data">
+		<h2 class="text-lg font-extrabold text-flag mb-1">Reset data</h2>
+		<p class="text-sm text-muted mb-4">
+			Mulai pemilihan dari nol. Reset tidak bisa dibatalkan dan hanya bisa dilakukan super admin.
+		</p>
+		{#if resetDone}
+			<p role="status" class="alert-ok mb-4">{resetDone}</p>
+		{/if}
+		<div class="flex flex-wrap gap-3">
+			<div>
+				<button type="button" onclick={() => openReset('votes_tokens')} class="btn-line !border-flag !text-flag">
+					Reset suara &amp; token
+				</button>
+				<p class="text-xs text-faint mt-1.5">Kandidat dan pengaturan tetap.</p>
+			</div>
+			<div>
+				<button type="button" onclick={() => openReset('all')} class="btn-flag !w-auto px-5">
+					Reset total
+				</button>
+				<p class="text-xs text-faint mt-1.5">Kandidat ikut dihapus.</p>
+			</div>
+		</div>
+	</section>
+{/if}
+
+{#if resetScope}
+	<div class="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4">
+		<button type="button" class="absolute inset-0 bg-ink/50" onclick={closeReset} aria-label="Tutup konfirmasi reset"></button>
+		<div role="alertdialog" aria-modal="true" aria-labelledby="reset-title" aria-describedby="reset-desc" class="relative recap w-full max-w-sm !p-6">
+			<div class="flex items-start justify-between gap-3 mb-2">
+				<h2 id="reset-title" class="text-lg font-extrabold text-flag flex items-center gap-2">
+					<TriangleAlert class="h-5 w-5" aria-hidden="true" />
+					{resetScope === 'all' ? 'Reset total?' : 'Reset suara & token?'}
+				</h2>
+				<button type="button" class="btn-line btn-sm !px-2" onclick={closeReset} aria-label="Tutup">
+					<X class="h-4 w-4" aria-hidden="true" />
+				</button>
+			</div>
+			<div id="reset-desc" class="text-sm text-muted">
+				<p class="mb-1">Yang terhapus permanen:</p>
+				<ul class="list-disc pl-5 mb-3">
+					<li>Semua suara yang sudah masuk</li>
+					<li>Semua token, termasuk yang belum terpakai</li>
+					{#if resetScope === 'all'}
+						<li>Semua kandidat beserta fotonya</li>
+					{/if}
+				</ul>
+				<p class="mb-4">
+					{#if resetScope === 'all'}
+						Pengaturan dan akun admin tidak ikut terhapus.
+					{:else}
+						Kandidat, pengaturan, dan akun admin tidak ikut terhapus.
+					{/if}
+				</p>
+			</div>
+			<label for="reset-confirm" class="field-label">Ketik RESET untuk melanjutkan</label>
+			<input
+				id="reset-confirm"
+				type="text"
+				bind:value={resetText}
+				class="input mb-4"
+				autocomplete="off"
+				autocapitalize="characters"
+				placeholder="RESET"
+			/>
+			{#if resetError}
+				<p role="alert" class="alert-error mb-4">{resetError}</p>
+			{/if}
+			<div class="flex gap-3">
+				<button type="button" class="btn-line flex-1" onclick={closeReset}>Batal</button>
+				<button
+					type="button"
+					class="btn-flag flex-1"
+					disabled={resetText !== 'RESET' || resetting}
+					onclick={doReset}
+				>
+					{resetting ? 'Mereset...' : 'Reset sekarang'}
+				</button>
+			</div>
+		</div>
+	</div>
 {/if}
