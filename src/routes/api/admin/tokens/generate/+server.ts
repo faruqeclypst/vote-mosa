@@ -1,3 +1,4 @@
+import { randomInt } from 'node:crypto';
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { db } from '$lib/db';
@@ -8,7 +9,7 @@ const ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 function randomCode(): string {
 	let s = '';
 	for (let i = 0; i < 5; i++) {
-		s += ALPHABET[Math.floor(Math.random() * ALPHABET.length)];
+		s += ALPHABET[randomInt(ALPHABET.length)];
 	}
 	return s;
 }
@@ -40,8 +41,7 @@ export const POST: RequestHandler = async (event) => {
 		const codes = [...batch];
 		const rows = await sql`
 			INSERT INTO tokens (code, type, label)
-			SELECT * FROM UNNEST(${codes}::varchar(8)[], ARRAY_FILL(${type}::text, ARRAY[${codes.length}]), ARRAY_FILL(${labelText}::text, ARRAY[${codes.length}]))
-			AS t(code, type, label)
+			SELECT code, ${type}, ${labelText} FROM UNNEST(${codes}::varchar(8)[]) AS t(code)
 			ON CONFLICT (code) DO NOTHING
 			RETURNING code
 		`;
