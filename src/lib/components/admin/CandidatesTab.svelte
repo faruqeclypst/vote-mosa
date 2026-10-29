@@ -96,7 +96,7 @@
 			const out = await compressImage(file);
 			photoDataUrl = out.dataUrl;
 			photoRemoved = false;
-			photoInfo = `${file.name} dikompres jadi ${formatBytes(out.bytes)}`;
+			photoInfo = `Foto terkompres jadi ${formatBytes(out.bytes)}`;
 		} catch (err) {
 			formError = err instanceof Error ? err.message : 'Gagal memproses foto.';
 		} finally {
@@ -131,7 +131,7 @@
 		photo_url = c.photo_link ?? '';
 		resetPhoto();
 		editingPhotoSrc = c.photo_url;
-		photoInfo = c.has_blob ? 'Foto tersimpan sebagai blob di database.' : '';
+		photoInfo = c.has_blob ? 'Foto tersimpan.' : '';
 		vision = c.vision ?? '';
 		mission = c.mission ?? '';
 		election = c.election;
@@ -213,11 +213,20 @@
 			</div>
 			<div class="flex gap-3 items-start">
 				<div class="flex-1 min-w-0">
-					<label for="c-election" class="field-label">Pemilihan</label>
-					<select id="c-election" bind:value={election} class="input">
-						<option value="osis">OSIS</option>
-						<option value="mpk">MPK</option>
-					</select>
+					<span class="field-label" id="c-election-label">Pemilihan</span>
+					<div class="flex h-[50px] items-center gap-1 rounded-full border bg-white p-1" role="radiogroup" aria-labelledby="c-election-label">
+						{#each [{ id: 'osis', label: 'OSIS' }, { id: 'mpk', label: 'MPK' }] as opt}
+							<button
+								type="button"
+								role="radio"
+								aria-checked={election === opt.id}
+								onclick={() => (election = opt.id as 'osis' | 'mpk')}
+								class="flex-1 h-full rounded-full text-sm font-extrabold tracking-wide transition-colors {election === opt.id ? 'bg-flag text-white' : 'text-muted hover:text-ink'}"
+							>
+								{opt.label}
+							</button>
+						{/each}
+					</div>
 				</div>
 				<div class="shrink-0">
 					<span class="field-label" id="c-photo-label">Foto</span>
