@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import Pager from '$lib/components/admin/Pager.svelte';
 	import { RefreshCw } from '@lucide/svelte';
 
 	interface PerCandidate {
@@ -23,6 +24,14 @@
 	let loading = $state(true);
 	let election = $state<'osis' | 'mpk'>('osis');
 
+	let page = $state(0);
+	const PAGE_SIZE = 10;
+	const totalPages = $derived(Math.max(1, Math.ceil((stats?.perCandidate.length ?? 0) / PAGE_SIZE)));
+	const pagedCandidates = $derived((stats?.perCandidate ?? []).slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE));
+	$effect(() => {
+		if (page > totalPages - 1) page = totalPages - 1;
+	});
+
 	async function load() {
 		loading = true;
 		error = '';
@@ -41,6 +50,7 @@
 		if (election === e) return;
 		election = e;
 		stats = null;
+		page = 0;
 		load();
 	}
 
@@ -113,11 +123,11 @@
 					</tr>
 				</thead>
 				<tbody>
-					{#each stats.perCandidate as c, i}
-						<tr class={i === 0 ? 'bg-picked' : ''}>
+					{#each pagedCandidates as c, i}
+						<tr class={page * PAGE_SIZE + i === 0 ? 'bg-picked' : ''}>
 							<td>
-								<span class="num-circle !w-8 !h-8 !text-[13px] {i === 0 ? '!border-flag !text-flag' : ''}" aria-label="Peringkat {i + 1}">
-									{i + 1}
+								<span class="num-circle !w-8 !h-8 !text-[13px] {page * PAGE_SIZE + i === 0 ? '!border-flag !text-flag' : ''}" aria-label="Peringkat {page * PAGE_SIZE + i + 1}">
+									{page * PAGE_SIZE + i + 1}
 								</span>
 							</td>
 							<td class="font-extrabold">{c.name}</td>
@@ -128,5 +138,6 @@
 				</tbody>
 			</table>
 		</div>
+		<Pager {page} {totalPages} label="Paginasi perolehan kandidat" onPage={(p) => (page = p)} />
 	{/if}
 {/if}

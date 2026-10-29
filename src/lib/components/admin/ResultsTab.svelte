@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { onMount, onDestroy } from 'svelte';
+	import Pager from '$lib/components/admin/Pager.svelte';
 	import { RefreshCw } from '@lucide/svelte';
 
 	interface PerCandidate {
@@ -33,6 +34,18 @@
 	let timer: ReturnType<typeof setInterval> | null = null;
 	let election = $state<'osis' | 'mpk'>('osis');
 
+	const PAGE_SIZE = 10;
+	let rankPage = $state(0);
+	const rankTotalPages = $derived(Math.max(1, Math.ceil((data?.perCandidate.length ?? 0) / PAGE_SIZE)));
+	const pagedRank = $derived((data?.perCandidate ?? []).slice(rankPage * PAGE_SIZE, (rankPage + 1) * PAGE_SIZE));
+	let recentPage = $state(0);
+	const recentTotalPages = $derived(Math.max(1, Math.ceil((data?.recentVotes.length ?? 0) / PAGE_SIZE)));
+	const pagedRecent = $derived((data?.recentVotes ?? []).slice(recentPage * PAGE_SIZE, (recentPage + 1) * PAGE_SIZE));
+	$effect(() => {
+		if (rankPage > rankTotalPages - 1) rankPage = rankTotalPages - 1;
+		if (recentPage > recentTotalPages - 1) recentPage = recentTotalPages - 1;
+	});
+
 	async function load(silent = false) {
 		if (!silent) loading = true;
 		try {
@@ -52,6 +65,8 @@
 		if (election === e) return;
 		election = e;
 		data = null;
+		rankPage = 0;
+		recentPage = 0;
 		load();
 	}
 
@@ -197,11 +212,11 @@
 						</tr>
 					</thead>
 					<tbody>
-						{#each data.perCandidate as c, i}
-							<tr class={i === 0 ? 'bg-picked' : ''}>
+						{#each pagedRank as c, i}
+							<tr class={rankPage * PAGE_SIZE + i === 0 ? 'bg-picked' : ''}>
 								<td>
-									<span class="num-circle !w-8 !h-8 !text-[13px] {i === 0 ? '!border-flag !text-flag' : ''}">
-										{i + 1}
+									<span class="num-circle !w-8 !h-8 !text-[13px] {rankPage * PAGE_SIZE + i === 0 ? '!border-flag !text-flag' : ''}">
+										{rankPage * PAGE_SIZE + i + 1}
 									</span>
 								</td>
 								<td class="font-extrabold">{c.name}</td>
@@ -213,6 +228,7 @@
 					</tbody>
 				</table>
 			</div>
+			<Pager page={rankPage} totalPages={rankTotalPages} label="Paginasi peringkat" onPage={(p) => (rankPage = p)} />
 			<div class="flex flex-wrap gap-x-6 gap-y-2 mt-4 text-sm text-muted">
 				{#each data.byType as b}
 					<span>{b.type === 'teacher' ? 'Suara guru' : 'Suara siswa'}: <strong class="text-ink">{b.votes}</strong> ({b.points} poin)</span>
@@ -236,7 +252,7 @@
 							</tr>
 						</thead>
 						<tbody>
-							{#each data.recentVotes as v}
+							{#each pagedRecent as v}
 								<tr>
 									<td class="text-muted whitespace-nowrap">{fmtTime(v.created_at)}</td>
 									<td class="font-extrabold">{v.candidate_name}</td>
@@ -251,7 +267,8 @@
 						</tbody>
 					</table>
 				</div>
-				<p class="text-xs text-faint mt-3">Kode token tidak ditampilkan di sini demi kerahasiaan pilihan pemilih.</p>
+				<Pager page={recentPage} totalPages={recentTotalPages} label="Paginasi suara terbaru" onPage={(p) => (recentPage = p)} />
+				<p class="text-xs text-faint mt-3">Kode token tidak ditampilkan di sini demi kerahasiaan pilihan pemilih. Daftar ini memuat 50 suara terakhir.</p>
 			{/if}
 		</section>
 	{/if}

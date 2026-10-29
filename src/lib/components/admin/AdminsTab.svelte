@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { page } from '$app/state';
+	import Pager from '$lib/components/admin/Pager.svelte';
 	import { Trash2 } from '@lucide/svelte';
 
 	interface AdminItem {
@@ -24,6 +25,14 @@
 	let role = $state<'admin' | 'super'>('admin');
 
 	const myId = $derived((page.data as { admin?: { adminId: string } }).admin?.adminId);
+
+	let listPage = $state(0);
+	const PAGE_SIZE = 10;
+	const totalPages = $derived(Math.max(1, Math.ceil(items.length / PAGE_SIZE)));
+	const pagedItems = $derived(items.slice(listPage * PAGE_SIZE, (listPage + 1) * PAGE_SIZE));
+	$effect(() => {
+		if (listPage > totalPages - 1) listPage = totalPages - 1;
+	});
 
 	async function load() {
 		loading = true;
@@ -146,7 +155,7 @@
 				</tr>
 			</thead>
 			<tbody>
-				{#each items as a (a.id)}
+				{#each pagedItems as a (a.id)}
 					<tr>
 						<td class="font-extrabold">{a.name}</td>
 						<td class="text-muted">{a.email}</td>
@@ -176,4 +185,5 @@
 			</tbody>
 		</table>
 	</div>
+	<Pager page={listPage} {totalPages} label="Paginasi admin" onPage={(p) => (listPage = p)} />
 {/if}

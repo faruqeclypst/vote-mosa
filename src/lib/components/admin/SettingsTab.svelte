@@ -69,7 +69,8 @@
 {#if loading}
 	<p class="text-muted">Memuat pengaturan...</p>
 {:else}
-	<form onsubmit={save} class="max-w-xl space-y-6">
+	<form onsubmit={save}>
+		<div class="grid gap-6 lg:grid-cols-2 items-start mb-6">
 		<fieldset class="recap !p-6">
 			<legend class="text-lg font-extrabold px-1">Status pemilihan</legend>
 			<div class="space-y-5">
@@ -126,6 +127,7 @@
 				<input id="s-school" type="text" bind:value={school} required minlength="2" maxlength="120" class="input" />
 			</div>
 		</fieldset>
+		</div>
 
 		{#if error}
 			<p role="alert" class="alert-error">{error}</p>
