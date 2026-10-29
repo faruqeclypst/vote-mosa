@@ -145,6 +145,36 @@
 			});
 			const body = await res.json();
 			if (!res.ok) {
+				// Jawaban submit bisa hilang di jaringan padahal suara sudah tersimpan di server.
+				// Bila server menjawab 409, cek ulang token: kalau pemilihan ini sudah tidak
+				// tersedia untuk token tersebut, berarti suara tadi memang sudah tercatat.
+				if (res.status === 409) {
+					try {
+						const check = await fetch('/api/vote/validate', {
+							method: 'POST',
+							headers: { 'Content-Type': 'application/json' },
+							body: JSON.stringify({ code })
+						});
+						if (check.status === 409) {
+							showConfirm = false;
+							done = true;
+							window.scrollTo({ top: 0 });
+							return;
+						}
+						if (check.ok) {
+							const checkBody = await check.json();
+							const still: string[] = Array.isArray(checkBody.elections) ? checkBody.elections : [];
+							if (votableElections.every((e) => !still.includes(e))) {
+								showConfirm = false;
+								done = true;
+								window.scrollTo({ top: 0 });
+								return;
+							}
+						}
+					} catch {
+						/* abaikan, tampilkan galat aslinya di bawah */
+					}
+				}
 				submitError = body.error ?? 'Gagal menyimpan suara.';
 				showConfirm = false;
 				submitting = false;

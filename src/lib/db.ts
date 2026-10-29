@@ -11,7 +11,9 @@ export function db(): Sql {
 	}
 	if (!cached) {
 		cached = postgres(url, {
-			max: 10,
+			// Hari pemilihan: ratusan pemilih bisa mengesahkan suara hampir bersamaan.
+			// Pool 10 membuat antrean panjang; 25 tetap jauh di bawah batas bawaan Postgres (100).
+			max: 25,
 			idle_timeout: 20,
 			connect_timeout: 10
 		});

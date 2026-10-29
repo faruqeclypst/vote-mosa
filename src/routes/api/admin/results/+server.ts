@@ -14,7 +14,7 @@ export const GET: RequestHandler = async (event) => {
 		sql`
 			SELECT c.id, c.name, c.photo_url, COUNT(v.id)::int AS votes, COALESCE(SUM(v.points), 0)::int AS points
 			FROM candidates c
-			LEFT JOIN votes v ON v.candidate_id = c.id
+			LEFT JOIN votes v ON v.candidate_id = c.id AND v.election = c.election
 			WHERE c.election = ${election}
 			GROUP BY c.id, c.name, c.photo_url, c.sort_order
 			ORDER BY points DESC, votes DESC, c.sort_order ASC
