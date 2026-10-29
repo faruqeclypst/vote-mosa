@@ -220,41 +220,34 @@
 					</select>
 				</div>
 				<div>
-					<label for="c-order" class="field-label">Urutan tampil</label>
-					<input id="c-order" type="number" bind:value={sort_order} min="0" class="input" />
-				</div>
-			</div>
-			<div>
-				<span class="field-label" id="c-photo-label">Foto kandidat</span>
-				<div class="flex items-start gap-3">
-					{#if previewSrc}
-						<Photo
-							src={previewSrc}
-							alt="Pratinjau foto kandidat"
-							name={name || '?'}
-							imgClass="w-16 h-16 object-cover rounded-md border border-line shrink-0"
-							fallbackClass="w-16 h-16 rounded-md shrink-0"
-							initialClass="text-2xl font-extrabold text-flag"
-						/>
-					{/if}
-					<div class="flex-1 min-w-0">
+					<span class="field-label" id="c-photo-label">Foto kandidat</span>
+					<div class="flex items-center gap-2">
+						{#if previewSrc}
+							<Photo
+								src={previewSrc}
+								alt="Pratinjau foto kandidat"
+								name={name || '?'}
+								imgClass="w-10 h-10 object-cover rounded-md border border-line shrink-0"
+								fallbackClass="w-10 h-10 rounded-md shrink-0"
+								initialClass="text-base font-extrabold text-flag"
+							/>
+						{/if}
 						<label for="c-photo-file" class="btn-line btn-sm cursor-pointer">
 							<ImagePlus class="h-4 w-4" />
 							{photoBusy ? 'Mengompres...' : 'Unggah foto'}
 						</label>
 						<input id="c-photo-file" type="file" accept="image/*" class="sr-only" bind:this={fileInput} onchange={onPickPhoto} aria-labelledby="c-photo-label" />
 						{#if previewSrc}
-							<button type="button" onclick={removePhoto} class="btn-line btn-sm !border-flag !text-flag ml-2">
+							<button type="button" onclick={removePhoto} class="btn-line btn-sm !border-flag !text-flag" aria-label="Hapus foto kandidat">
 								<X class="h-4 w-4" />
-								Hapus
 							</button>
 						{/if}
-						{#if photoInfo}
-							<p class="text-xs text-muted mt-1">{photoInfo}</p>
-						{/if}
 					</div>
+					{#if photoInfo}
+						<p class="text-xs text-muted mt-1">{photoInfo}</p>
+					{/if}
+					<input id="c-photo" type="hidden" bind:value={photo_url} />
 				</div>
-				<input id="c-photo" type="hidden" bind:value={photo_url} />
 			</div>
 			<div>
 				<label for="c-vision" class="field-label">Visi</label>
@@ -312,7 +305,6 @@
 							<th scope="col">NO</th>
 							<th scope="col">KANDIDAT</th>
 							<th scope="col">PEMILIHAN</th>
-							<th scope="col">URUTAN</th>
 							<th scope="col"><span class="sr-only">Aksi</span></th>
 						</tr>
 					</thead>
@@ -338,7 +330,6 @@
 										{c.election === 'mpk' ? 'MPK' : 'OSIS'}
 									</span>
 								</td>
-								<td class="text-muted">{c.sort_order}</td>
 								<td class="text-right whitespace-nowrap">
 									<button type="button" onclick={() => startEdit(c)} class="btn-line btn-sm mr-2" aria-label="Ubah {c.name}">
 										<Pencil class="h-4 w-4" />
