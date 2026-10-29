@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { onMount, onDestroy } from 'svelte';
 	import Pager from '$lib/components/admin/Pager.svelte';
-	import { RefreshCw } from '@lucide/svelte';
 
 	interface PerCandidate {
 		id: string;
@@ -30,7 +29,6 @@
 	let data = $state<Results | null>(null);
 	let error = $state('');
 	let loading = $state(true);
-	let lastUpdated = $state<Date | null>(null);
 	let timer: ReturnType<typeof setInterval> | null = null;
 	let election = $state<'osis' | 'mpk'>('osis');
 
@@ -52,7 +50,6 @@
 			const res = await fetch(`/api/admin/results?election=${election}`);
 			if (!res.ok) throw new Error();
 			data = await res.json();
-			lastUpdated = new Date();
 			error = '';
 		} catch {
 			if (!data) error = 'Gagal memuat hasil.';
@@ -126,15 +123,6 @@
 			<span class="h-2 w-2 rounded-full bg-emerald-600 animate-pulse"></span>
 			Langsung
 		</span>
-		{#if lastUpdated}
-			<p class="text-xs text-faint hidden sm:block">
-				Diperbarui {lastUpdated.toLocaleTimeString('id-ID')}
-			</p>
-		{/if}
-		<button type="button" onclick={() => load()} class="btn-line btn-sm">
-			<RefreshCw class="h-4 w-4" />
-			Muat ulang
-		</button>
 	</div>
 </div>
 

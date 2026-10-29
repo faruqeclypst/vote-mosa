@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import Pager from '$lib/components/admin/Pager.svelte';
-	import { RefreshCw } from '@lucide/svelte';
 
 	interface PerCandidate {
 		id: string;
@@ -94,10 +93,6 @@
 			<span class="h-2 w-2 rounded-full bg-emerald-600 animate-pulse"></span>
 			Langsung
 		</span>
-		<button type="button" onclick={load} class="btn-line btn-sm">
-			<RefreshCw class="h-4 w-4" />
-			Muat ulang
-		</button>
 	</div>
 </div>
 
