@@ -214,14 +214,14 @@
 			<div class="flex gap-3 items-start">
 				<div class="flex-1 min-w-0">
 					<span class="field-label" id="c-election-label">Pemilihan</span>
-					<div class="flex h-[50px] items-center gap-1 rounded-full border bg-white p-1" role="radiogroup" aria-labelledby="c-election-label">
+					<div class="flex h-[50px] items-center gap-1 rounded-md border bg-white p-1" role="radiogroup" aria-labelledby="c-election-label">
 						{#each [{ id: 'osis', label: 'OSIS' }, { id: 'mpk', label: 'MPK' }] as opt}
 							<button
 								type="button"
 								role="radio"
 								aria-checked={election === opt.id}
 								onclick={() => (election = opt.id as 'osis' | 'mpk')}
-								class="flex-1 h-full rounded-full text-sm font-extrabold tracking-wide transition-colors {election === opt.id ? 'bg-flag text-white' : 'text-muted hover:text-ink'}"
+								class="flex-1 h-full rounded-md text-sm font-extrabold tracking-wide transition-colors {election === opt.id ? 'bg-flag text-white' : 'text-muted hover:text-ink'}"
 							>
 								{opt.label}
 							</button>
