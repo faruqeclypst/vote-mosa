@@ -400,7 +400,7 @@
 						</td>
 						<td class="text-right">
 							{#if !t.is_used}
-								<button type="button" onclick={() => remove(t.id)} class="btn-line btn-sm !border-flag !text-flag" aria-label="Hapus token {t.code}">
+								<button type="button" onclick={() => remove(t.id)} class="btn-danger btn-sm" aria-label="Hapus token {t.code}">
 									<Trash2 class="h-4 w-4" />
 								</button>
 							{/if}

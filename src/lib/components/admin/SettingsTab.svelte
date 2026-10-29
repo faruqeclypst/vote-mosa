@@ -195,13 +195,13 @@
 		{/if}
 		<div class="flex flex-wrap gap-3">
 			<div>
-				<button type="button" onclick={() => openReset('votes_tokens')} class="btn-line !border-flag !text-flag">
+				<button type="button" onclick={() => openReset('votes_tokens')} class="btn-danger btn-sm">
 					Reset suara &amp; token
 				</button>
 				<p class="text-xs text-faint mt-1.5">Kandidat dan pengaturan tetap.</p>
 			</div>
 			<div>
-				<button type="button" onclick={() => openReset('all')} class="btn-flag !w-auto px-5">
+				<button type="button" onclick={() => openReset('all')} class="btn-flag btn-sm">
 					Reset total
 				</button>
 				<p class="text-xs text-faint mt-1.5">Kandidat ikut dihapus.</p>
@@ -254,10 +254,10 @@
 				<p role="alert" class="alert-error mb-4">{resetError}</p>
 			{/if}
 			<div class="flex gap-3">
-				<button type="button" class="btn-line flex-1" onclick={closeReset}>Batal</button>
+				<button type="button" class="btn-line btn-sm flex-1 whitespace-nowrap" onclick={closeReset}>Batal</button>
 				<button
 					type="button"
-					class="btn-flag flex-1"
+					class="btn-flag btn-sm flex-1 whitespace-nowrap"
 					disabled={resetText !== 'RESET' || resetting}
 					onclick={doReset}
 				>

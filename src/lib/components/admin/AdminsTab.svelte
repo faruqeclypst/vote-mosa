@@ -174,7 +174,7 @@
 										Batal
 									</button>
 								{:else}
-									<button type="button" onclick={() => (confirmDelete = a.id)} class="btn-line btn-sm !border-flag !text-flag" aria-label="Hapus {a.name}">
+									<button type="button" onclick={() => (confirmDelete = a.id)} class="btn-danger btn-sm" aria-label="Hapus {a.name}">
 										<Trash2 class="h-4 w-4" />
 									</button>
 								{/if}

@@ -201,6 +201,14 @@ body {
 		@apply bg-ink text-paper;
 	}
 
+	.btn-danger {
+		@apply inline-flex items-center justify-center gap-2 min-h-[48px] px-6 rounded-md border-2 border-flag bg-transparent text-flag text-sm font-bold transition-colors disabled:opacity-40 disabled:cursor-not-allowed;
+	}
+
+	.btn-danger:not(:disabled):hover {
+		@apply bg-flag text-white;
+	}
+
 	.btn-sm {
 		@apply min-h-[40px] px-4 text-[13px] w-auto;
 	}

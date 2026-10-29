@@ -292,7 +292,7 @@
 					{saving ? 'Menyimpan...' : editingId ? 'Simpan perubahan' : 'Tambah kandidat'}
 				</button>
 				{#if editingId}
-					<button type="button" onclick={resetForm} class="btn-line">
+					<button type="button" onclick={resetForm} class="btn-line !min-h-[54px]">
 						Batal
 					</button>
 				{/if}
@@ -370,7 +370,7 @@
 											Batal
 										</button>
 									{:else}
-										<button type="button" onclick={() => (confirmDelete = c.id)} class="btn-line btn-sm !border-flag !text-flag" aria-label="Hapus {c.name}">
+										<button type="button" onclick={() => (confirmDelete = c.id)} class="btn-danger btn-sm" aria-label="Hapus {c.name}">
 											<Trash2 class="h-4 w-4" />
 										</button>
 									{/if}
