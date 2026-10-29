@@ -46,6 +46,16 @@
 		}
 	}
 
+	// Hasil real time: muat ulang diam-diam tiap 5 detik.
+	async function refresh() {
+		try {
+			const res = await fetch(`/api/admin/stats?election=${election}`);
+			if (res.ok) stats = await res.json();
+		} catch {
+			// Abaikan: dicoba lagi pada siklus berikutnya.
+		}
+	}
+
 	function selectElection(e: 'osis' | 'mpk') {
 		if (election === e) return;
 		election = e;
@@ -54,7 +64,11 @@
 		load();
 	}
 
-	onMount(load);
+	onMount(() => {
+		load();
+		const timer = setInterval(refresh, 5000);
+		return () => clearInterval(timer);
+	});
 </script>
 
 <div class="flex flex-wrap items-center justify-between gap-3 mb-6">
@@ -76,6 +90,10 @@
 				</button>
 			{/each}
 		</div>
+		<span class="flex items-center gap-1.5 text-xs font-bold text-muted" title="Diperbarui otomatis tiap 5 detik">
+			<span class="h-2 w-2 rounded-full bg-emerald-600 animate-pulse"></span>
+			Langsung
+		</span>
 		<button type="button" onclick={load} class="btn-line btn-sm">
 			<RefreshCw class="h-4 w-4" />
 			Muat ulang

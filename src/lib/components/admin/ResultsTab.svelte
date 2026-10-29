@@ -122,9 +122,13 @@
 				</button>
 			{/each}
 		</div>
+		<span class="flex items-center gap-1.5 text-xs font-bold text-muted" title="Hasil diperbarui otomatis tiap 5 detik">
+			<span class="h-2 w-2 rounded-full bg-emerald-600 animate-pulse"></span>
+			Langsung
+		</span>
 		{#if lastUpdated}
 			<p class="text-xs text-faint hidden sm:block">
-				Diperbarui {lastUpdated.toLocaleTimeString('id-ID')} (otomatis tiap 5 detik)
+				Diperbarui {lastUpdated.toLocaleTimeString('id-ID')}
 			</p>
 		{/if}
 		<button type="button" onclick={() => load()} class="btn-line btn-sm">
