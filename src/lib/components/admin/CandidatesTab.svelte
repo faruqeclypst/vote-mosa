@@ -249,14 +249,12 @@
 								Hapus
 							</button>
 						{/if}
-						<p class="text-xs text-faint mt-1.5">Foto dikompres otomatis (maks 720px) lalu disimpan sebagai blob di database.</p>
 						{#if photoInfo}
 							<p class="text-xs text-muted mt-1">{photoInfo}</p>
 						{/if}
 					</div>
 				</div>
-				<label for="c-photo" class="field-label mt-3">atau URL foto</label>
-				<input id="c-photo" type="url" bind:value={photo_url} placeholder="https://..." class="input" />
+				<input id="c-photo" type="hidden" bind:value={photo_url} />
 			</div>
 			<div>
 				<label for="c-vision" class="field-label">Visi</label>
