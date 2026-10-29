@@ -15,6 +15,8 @@ CREATE TABLE IF NOT EXISTS candidates (
 	id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
 	name text NOT NULL,
 	photo_url text,
+	photo_data bytea,
+	photo_mime text,
 	vision text,
 	mission text,
 	election text NOT NULL DEFAULT 'osis' CHECK (election IN ('osis', 'mpk')),
@@ -23,6 +25,9 @@ CREATE TABLE IF NOT EXISTS candidates (
 	updated_at timestamptz NOT NULL DEFAULT now()
 );
 CREATE INDEX IF NOT EXISTS idx_candidates_election ON candidates (election);
+-- Untuk database yang sudah ada sebelum fitur foto blob
+ALTER TABLE candidates ADD COLUMN IF NOT EXISTS photo_data bytea;
+ALTER TABLE candidates ADD COLUMN IF NOT EXISTS photo_mime text;
 
 CREATE TABLE IF NOT EXISTS tokens (
 	id uuid PRIMARY KEY DEFAULT gen_random_uuid(),

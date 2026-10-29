@@ -2,31 +2,45 @@ import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { db } from '$lib/db';
 import { readJson, requireAdmin } from '$lib/api';
+import { candidatePhotoSrc, parsePhotoChange } from '$lib/photos';
+import { validateCandidate } from '$lib/candidates';
 
-function validateCandidate(body: Record<string, unknown>): { ok: true; data: { name: string; photo_url: string | null; vision: string | null; mission: string | null; election: 'osis' | 'mpk'; sort_order: number } } | { ok: false; error: string } {
-	const { name, photo_url, vision, mission, election, sort_order } = body;
-	if (typeof name !== 'string' || name.trim().length < 2 || name.trim().length > 120) {
-		return { ok: false, error: 'Nama kandidat minimal 2 karakter.' };
-	}
-	const photo = typeof photo_url === 'string' && photo_url.trim() !== '' ? photo_url.trim() : null;
-	if (photo && (photo.length > 2000 || !/^https?:\/\//i.test(photo))) {
-		return { ok: false, error: 'URL foto tidak valid (harus http/https).' };
-	}
-	const visionText = typeof vision === 'string' && vision.trim() !== '' ? vision.trim() : null;
-	const missionText = typeof mission === 'string' && mission.trim() !== '' ? mission.trim() : null;
-	const order = typeof sort_order === 'number' && Number.isInteger(sort_order) ? sort_order : 0;
-	if (visionText && visionText.length > 2000) return { ok: false, error: 'Visi terlalu panjang.' };
-	if (missionText && missionText.length > 5000) return { ok: false, error: 'Misi terlalu panjang.' };
-	const electionVal = election === 'mpk' ? 'mpk' : 'osis';
-	return { ok: true, data: { name: name.trim(), photo_url: photo, vision: visionText, mission: missionText, election: electionVal, sort_order: order } };
+interface CandidateRow {
+	id: string;
+	name: string;
+	photo_url: string | null;
+	vision: string | null;
+	mission: string | null;
+	election: 'osis' | 'mpk';
+	sort_order: number;
+	has_blob: boolean;
+	updated_at: string;
 }
+
+function toItem(r: CandidateRow) {
+	return {
+		id: r.id,
+		name: r.name,
+		photo_url: candidatePhotoSrc(r),
+		photo_link: r.has_blob ? null : r.photo_url,
+		has_blob: r.has_blob,
+		vision: r.vision,
+		mission: r.mission,
+		election: r.election,
+		sort_order: r.sort_order
+	};
+}
+
+const SELECT = `id, name, photo_url, vision, mission, election, sort_order, (photo_data IS NOT NULL) AS has_blob, updated_at`;
 
 export const GET: RequestHandler = async (event) => {
 	const auth = requireAdmin(event);
 	if (auth instanceof Response) return auth;
 	const sql = db();
-	const rows = await sql`SELECT id, name, photo_url, vision, mission, election, sort_order FROM candidates ORDER BY election ASC, sort_order ASC, created_at ASC`;
-	return json({ items: rows });
+	const rows = (await sql.unsafe(
+		`SELECT ${SELECT} FROM candidates ORDER BY election ASC, sort_order ASC, created_at ASC`
+	)) as unknown as CandidateRow[];
+	return json({ items: rows.map(toItem) });
 };
 
 export const POST: RequestHandler = async (event) => {
@@ -36,12 +50,17 @@ export const POST: RequestHandler = async (event) => {
 	if (!parsed.ok) return parsed.response;
 	const validated = validateCandidate(parsed.body);
 	if (!validated.ok) return json({ error: validated.error }, { status: 400 });
+	const photo = parsePhotoChange(parsed.body);
+	if (photo.kind === 'error') return json({ error: photo.error }, { status: 400 });
 	const d = validated.data;
 	const sql = db();
-	const rows = await sql`
-		INSERT INTO candidates (name, photo_url, vision, mission, election, sort_order)
-		VALUES (${d.name}, ${d.photo_url}, ${d.vision}, ${d.mission}, ${d.election}, ${d.sort_order})
-		RETURNING id, name, photo_url, vision, mission, election, sort_order
-	`;
-	return json({ item: rows[0] }, { status: 201 });
+	const photoData = photo.kind === 'set' ? photo.data : null;
+	const photoMime = photo.kind === 'set' ? photo.mime : null;
+	const rows = (await sql`
+		INSERT INTO candidates (name, photo_url, photo_data, photo_mime, vision, mission, election, sort_order)
+		VALUES (${d.name}, ${d.photo_url}, ${photoData}, ${photoMime}, ${d.vision}, ${d.mission}, ${d.election}, ${d.sort_order})
+		RETURNING id
+	`) as unknown as { id: string }[];
+	const created = (await sql.unsafe(`SELECT ${SELECT} FROM candidates WHERE id = $1`, [rows[0].id])) as unknown as CandidateRow[];
+	return json({ item: toItem(created[0]) }, { status: 201 });
 };

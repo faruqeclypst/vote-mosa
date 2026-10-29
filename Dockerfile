@@ -13,6 +13,7 @@ WORKDIR /app
 ENV NODE_ENV=production
 ENV HOST=0.0.0.0
 ENV PORT=3103
+ENV BODY_SIZE_LIMIT=2097152
 COPY package.json package-lock.json ./
 RUN npm ci --omit=dev --no-bin-links --no-audit --no-fund
 COPY --from=build /app/build ./build

@@ -1,12 +1,16 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import Photo from '$lib/components/Photo.svelte';
-	import { Pencil, Trash2 } from '@lucide/svelte';
+	import Pager from '$lib/components/admin/Pager.svelte';
+	import { compressImage, formatBytes } from '$lib/image';
+	import { ImagePlus, Pencil, Trash2, X } from '@lucide/svelte';
 
 	interface Candidate {
 		id: string;
 		name: string;
 		photo_url: string | null;
+		photo_link: string | null;
+		has_blob: boolean;
 		vision: string | null;
 		mission: string | null;
 		election: 'osis' | 'mpk';
@@ -24,6 +28,17 @@
 
 	let name = $state('');
 	let photo_url = $state('');
+	let photoDataUrl = $state<string | null>(null);
+	let photoInfo = $state('');
+	let photoRemoved = $state(false);
+	let editingPhotoSrc = $state<string | null>(null);
+	let photoBusy = $state(false);
+	let fileInput = $state<HTMLInputElement | null>(null);
+
+	const previewSrc = $derived(
+		photoDataUrl ?? (photo_url.trim() !== '' ? photo_url.trim() : photoRemoved ? null : editingPhotoSrc)
+	);
+
 	let vision = $state('');
 	let mission = $state('');
 	let election = $state<'osis' | 'mpk'>('osis');
@@ -39,21 +54,6 @@
 	const paged = $derived(filtered.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE));
 	const rangeStart = $derived(filtered.length === 0 ? 0 : page * PAGE_SIZE + 1);
 	const rangeEnd = $derived(Math.min(filtered.length, (page + 1) * PAGE_SIZE));
-	const pageList = $derived.by<(number | '…')[]>(() => {
-		const n = totalPages;
-		const cur = page + 1;
-		if (n <= 7) return Array.from({ length: n }, (_, i) => i + 1);
-		const keep = new Set([1, 2, n - 1, n, cur - 1, cur, cur + 1]);
-		const out: (number | '…')[] = [];
-		let prev = 0;
-		for (let p = 1; p <= n; p++) {
-			if (!keep.has(p)) continue;
-			if (prev && p - prev > 1) out.push('…');
-			out.push(p);
-			prev = p;
-		}
-		return out;
-	});
 
 	$effect(() => {
 		if (page > totalPages - 1) page = totalPages - 1;
@@ -78,10 +78,46 @@
 		}
 	}
 
+	function resetPhoto() {
+		photoDataUrl = null;
+		photoInfo = '';
+		photoRemoved = false;
+		editingPhotoSrc = null;
+		if (fileInput) fileInput.value = '';
+	}
+
+	async function onPickPhoto(e: Event) {
+		const input = e.currentTarget as HTMLInputElement;
+		const file = input.files?.[0];
+		if (!file) return;
+		photoBusy = true;
+		formError = '';
+		try {
+			const out = await compressImage(file);
+			photoDataUrl = out.dataUrl;
+			photoRemoved = false;
+			photoInfo = `${file.name} dikompres jadi ${formatBytes(out.bytes)}`;
+		} catch (err) {
+			formError = err instanceof Error ? err.message : 'Gagal memproses foto.';
+		} finally {
+			photoBusy = false;
+		}
+	}
+
+	function removePhoto() {
+		photoDataUrl = null;
+		photo_url = '';
+		photoRemoved = true;
+		editingPhotoSrc = null;
+		photoInfo = '';
+		if (fileInput) fileInput.value = '';
+	}
+
 	function resetForm() {
 		editingId = null;
 		name = '';
 		photo_url = '';
+		resetPhoto();
 		vision = '';
 		mission = '';
 		election = electionFilter === 'mpk' ? 'mpk' : 'osis';
@@ -92,7 +128,10 @@
 	function startEdit(c: Candidate) {
 		editingId = c.id;
 		name = c.name;
-		photo_url = c.photo_url ?? '';
+		photo_url = c.photo_link ?? '';
+		resetPhoto();
+		editingPhotoSrc = c.photo_url;
+		photoInfo = c.has_blob ? 'Foto tersimpan sebagai blob di database.' : '';
 		vision = c.vision ?? '';
 		mission = c.mission ?? '';
 		election = c.election;
@@ -106,7 +145,9 @@
 		if (saving) return;
 		saving = true;
 		formError = '';
-		const payload = { name, photo_url, vision, mission, election, sort_order: Number(sort_order) || 0 };
+		const payload: Record<string, unknown> = { name, photo_url, vision, mission, election, sort_order: Number(sort_order) || 0 };
+		if (photoDataUrl) payload.photo_data = photoDataUrl;
+		else if (photoRemoved) payload.photo_data = null;
 		try {
 			const res = await fetch(
 				editingId ? `/api/admin/candidates/${editingId}` : '/api/admin/candidates',
@@ -184,20 +225,38 @@
 				</div>
 			</div>
 			<div>
-				<label for="c-photo" class="field-label">URL foto</label>
-				<input id="c-photo" type="url" bind:value={photo_url} placeholder="https://..." class="input" />
-				{#if photo_url.trim()}
-					<div class="mt-2">
+				<span class="field-label" id="c-photo-label">Foto kandidat</span>
+				<div class="flex items-start gap-3">
+					{#if previewSrc}
 						<Photo
-							src={photo_url.trim()}
+							src={previewSrc}
 							alt="Pratinjau foto kandidat"
 							name={name || '?'}
-							imgClass="w-16 h-16 object-cover rounded-md border border-line"
-							fallbackClass="w-16 h-16 rounded-md"
+							imgClass="w-16 h-16 object-cover rounded-md border border-line shrink-0"
+							fallbackClass="w-16 h-16 rounded-md shrink-0"
 							initialClass="text-2xl font-extrabold text-flag"
 						/>
+					{/if}
+					<div class="flex-1 min-w-0">
+						<label for="c-photo-file" class="btn-line btn-sm cursor-pointer">
+							<ImagePlus class="h-4 w-4" />
+							{photoBusy ? 'Mengompres...' : 'Unggah foto'}
+						</label>
+						<input id="c-photo-file" type="file" accept="image/*" class="sr-only" bind:this={fileInput} onchange={onPickPhoto} aria-labelledby="c-photo-label" />
+						{#if previewSrc}
+							<button type="button" onclick={removePhoto} class="btn-line btn-sm !border-flag !text-flag ml-2">
+								<X class="h-4 w-4" />
+								Hapus
+							</button>
+						{/if}
+						<p class="text-xs text-faint mt-1.5">Foto dikompres otomatis (maks 720px) lalu disimpan sebagai blob di database.</p>
+						{#if photoInfo}
+							<p class="text-xs text-muted mt-1">{photoInfo}</p>
+						{/if}
 					</div>
-				{/if}
+				</div>
+				<label for="c-photo" class="field-label mt-3">atau URL foto</label>
+				<input id="c-photo" type="url" bind:value={photo_url} placeholder="https://..." class="input" />
 			</div>
 			<div>
 				<label for="c-vision" class="field-label">Visi</label>
@@ -305,32 +364,7 @@
 					</tbody>
 				</table>
 			</div>
-			{#if totalPages > 1}
-				<nav class="flex flex-wrap items-center justify-between gap-3 mt-4" aria-label="Paginasi kandidat">
-					<button type="button" onclick={() => (page = Math.max(0, page - 1))} disabled={page === 0} class="btn-line btn-sm">
-						Sebelumnya
-					</button>
-					<div class="flex flex-wrap items-center gap-1">
-						{#each pageList as p}
-							{#if p === '…'}
-								<span class="px-2 text-muted" aria-hidden="true">…</span>
-							{:else}
-								<button
-									type="button"
-									onclick={() => (page = p - 1)}
-									aria-current={p === page + 1 ? 'page' : undefined}
-									class={p === page + 1 ? 'btn-flag btn-sm !w-auto px-3' : 'btn-line btn-sm !w-auto px-3'}
-								>
-									{p}
-								</button>
-							{/if}
-						{/each}
-					</div>
-					<button type="button" onclick={() => (page = Math.min(totalPages - 1, page + 1))} disabled={page >= totalPages - 1} class="btn-line btn-sm">
-						Berikutnya
-					</button>
-				</nav>
-			{/if}
+			<Pager {page} {totalPages} label="Paginasi kandidat" onPage={(p) => (page = Math.min(Math.max(0, p), totalPages - 1))} />
 		{/if}
 	</section>
 </div>

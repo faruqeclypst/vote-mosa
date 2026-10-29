@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import Pager from '$lib/components/admin/Pager.svelte';
 	import { Copy, Download, Trash2 } from '@lucide/svelte';
 
 	interface TokenItem {
@@ -40,6 +41,13 @@
 	let pageSize = $state(10);
 
 	let groups = $state<TokenGroup[]>([]);
+	let groupPage = $state(0);
+	const GROUP_PAGE_SIZE = 10;
+	const groupTotalPages = $derived(Math.max(1, Math.ceil(groups.length / GROUP_PAGE_SIZE)));
+	const pagedGroups = $derived(groups.slice(groupPage * GROUP_PAGE_SIZE, (groupPage + 1) * GROUP_PAGE_SIZE));
+	$effect(() => {
+		if (groupPage > groupTotalPages - 1) groupPage = groupTotalPages - 1;
+	});
 	const classGroups = $derived(groups.filter((g) => g.type === 'student'));
 	const teacherGroups = $derived(groups.filter((g) => g.type === 'teacher'));
 	const teacherTotal = $derived(teacherGroups.reduce((s, g) => s + g.total, 0));
@@ -276,7 +284,7 @@
 					</tr>
 				</thead>
 				<tbody>
-					{#each groups as g (g.type + '|' + g.label)}
+					{#each pagedGroups as g (g.type + '|' + g.label)}
 						<tr>
 							<td class="font-extrabold">{g.type === 'teacher' ? (g.label || 'Guru') : (g.label || '(tanpa kelas)')}</td>
 							<td>{g.type === 'teacher' ? 'Guru' : 'Siswa'}</td>
@@ -294,6 +302,7 @@
 				</tbody>
 			</table>
 		</div>
+		<Pager page={groupPage} totalPages={groupTotalPages} label="Paginasi kelompok token" onPage={(p) => (groupPage = p)} />
 	{/if}
 </section>
 

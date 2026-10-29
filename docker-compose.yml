@@ -6,6 +6,8 @@ services:
     environment:
       DATABASE_URL: postgres://pemos:${POSTGRES_PASSWORD}@pemos-postgres:5432/pemos
       NODE_ENV: production
+      # Foto kandidat diunggah sebagai base64 di badan JSON, beri ruang di atas bawaan 512 KB
+      BODY_SIZE_LIMIT: '2097152'
     ports:
       - "127.0.0.1:3103:3103"
     depends_on:
