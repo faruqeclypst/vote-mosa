@@ -302,10 +302,6 @@
 				</div>
 				{#if tokenState === 'checking'}
 					<p role="status" class="hint !text-ink font-semibold">Memeriksa token...</p>
-				{:else if tokenState === 'valid'}
-					<p role="status" class="hint !text-ink font-bold">
-						Token valid — setiap pilihanmu bernilai {voterType === 'teacher' ? '2' : '1'} poin.
-					</p>
 				{:else if tokenState === 'error'}
 					<p role="alert" class="alert-error mb-6">{tokenError}</p>
 				{/if}
