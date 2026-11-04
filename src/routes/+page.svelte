@@ -334,7 +334,7 @@
 											fallbackClass="w-full h-60 sm:h-72 rounded-md mt-5"
 											initialClass="text-6xl font-extrabold text-flag"
 										/>
-										<span class="block text-2xl font-extrabold leading-tight mt-5">{c.name}</span>
+										<span class="block text-3xl font-extrabold leading-tight mt-5">{c.name}</span>
 										{#if visionOf(c)}
 											<span class="block text-sm text-muted leading-snug mt-1.5">{visionOf(c)}</span>
 										{/if}
