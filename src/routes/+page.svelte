@@ -317,7 +317,7 @@
 						<div class={ei > 0 ? 'mt-8' : ''}>
 							<span class="lbl">SURAT SUARA — {ELECTION_LABEL[election as keyof typeof ELECTION_LABEL].toUpperCase()}</span>
 							<p class="hint">Ketuk satu kandidat untuk mencoblos. Kamu bisa mengganti pilihan sebelum disahkan.</p>
-							<div class="grid gap-5 sm:grid-cols-2 xl:grid-cols-3 items-stretch">
+							<div class="grid gap-5 items-stretch" style="grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));">
 								{#each candidatesByElection[election] as c, i (c.id)}
 									<button
 										type="button"
