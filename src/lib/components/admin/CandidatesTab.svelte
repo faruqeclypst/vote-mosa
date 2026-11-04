@@ -11,8 +11,6 @@
 		photo_url: string | null;
 		photo_link: string | null;
 		has_blob: boolean;
-		vision: string | null;
-		mission: string | null;
 		election: 'osis' | 'mpk';
 		sort_order: number;
 	}
@@ -39,8 +37,6 @@
 		photoDataUrl ?? (photo_url.trim() !== '' ? photo_url.trim() : photoRemoved ? null : editingPhotoSrc)
 	);
 
-	let vision = $state('');
-	let mission = $state('');
 	let election = $state<'osis' | 'mpk'>('osis');
 	let sort_order = $state(0);
 
@@ -118,8 +114,6 @@
 		name = '';
 		photo_url = '';
 		resetPhoto();
-		vision = '';
-		mission = '';
 		election = electionFilter === 'mpk' ? 'mpk' : 'osis';
 		sort_order = items.length;
 		formError = '';
@@ -132,8 +126,6 @@
 		resetPhoto();
 		editingPhotoSrc = c.photo_url;
 		photoInfo = c.has_blob ? 'Foto tersimpan.' : '';
-		vision = c.vision ?? '';
-		mission = c.mission ?? '';
 		election = c.election;
 		sort_order = c.sort_order;
 		formError = '';
@@ -145,7 +137,7 @@
 		if (saving) return;
 		saving = true;
 		formError = '';
-		const payload: Record<string, unknown> = { name, photo_url, vision, mission, election, sort_order: Number(sort_order) || 0 };
+		const payload: Record<string, unknown> = { name, photo_url, election, sort_order: Number(sort_order) || 0 };
 		if (photoDataUrl) payload.photo_data = photoDataUrl;
 		else if (photoRemoved) payload.photo_data = null;
 		try {
@@ -276,14 +268,6 @@
 			{#if photoInfo}
 				<p class="text-xs text-muted">{photoInfo}</p>
 			{/if}
-			<div>
-				<label for="c-vision" class="field-label">Visi</label>
-				<textarea id="c-vision" bind:value={vision} rows="2" maxlength="2000" class="input min-h-[64px] py-2.5"></textarea>
-			</div>
-			<div>
-				<label for="c-mission" class="field-label">Misi</label>
-				<textarea id="c-mission" bind:value={mission} rows="3" maxlength="5000" class="input min-h-[84px] py-2.5"></textarea>
-			</div>
 			{#if formError}
 				<p role="alert" class="alert-error">{formError}</p>
 			{/if}

@@ -192,10 +192,6 @@
 		}
 	}
 
-	function visionOf(c: Candidate): string {
-		return c.vision?.trim() || c.mission?.trim().split('\n')[0] || '';
-	}
-
 	let resetTimer: ReturnType<typeof setTimeout> | null = null;
 	let countdownTimer: ReturnType<typeof setInterval> | null = null;
 	let countdown = $state(0);
@@ -323,7 +319,10 @@
 										class="ballot-card {picks[election] === c.id ? 'picked' : ''}"
 										aria-pressed={picks[election] === c.id}
 									>
-										<span class="num-circle" aria-hidden="true">{i + 1}</span>
+										<span class="flex w-full items-center justify-between">
+											<span class="num-box" aria-hidden="true">{i + 1}</span>
+											<span class="cat-tag">{election.toUpperCase()}</span>
+										</span>
 										<Photo
 											src={c.photo_url}
 											alt="Foto {c.name}"
@@ -333,9 +332,6 @@
 											initialClass="text-6xl font-extrabold text-flag"
 										/>
 										<span class="block text-3xl font-extrabold leading-tight mt-5">{c.name}</span>
-										{#if visionOf(c)}
-											<span class="block text-sm text-muted leading-snug mt-1.5">{visionOf(c)}</span>
-										{/if}
 										{#if picks[election] === c.id}
 											<span class="stamp" aria-hidden="true">COBLOS</span>
 										{/if}

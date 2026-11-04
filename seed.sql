@@ -3,59 +3,17 @@
 -- Token contoh yang selalu tersedia untuk dicoba: ABCDE, GURU1, SISWA.
 
 -- 3 kandidat OSIS dummy
-INSERT INTO candidates (id, name, photo_url, vision, mission, election, sort_order) VALUES
-	('a1a1a1a1-1111-4111-8111-111111111111', 'Rizky Pratama',
-		'https://i.pravatar.cc/400?img=12',
-		'Menjadikan OSIS sebagai wadah aspirasi yang aktif, transparan, dan dekat dengan seluruh siswa.',
-		'Membuka kanal aspirasi rutin setiap bulan.' || chr(10) ||
-		'Mengadakan forum terbuka antara OSIS dan perwakilan kelas.' || chr(10) ||
-		'Mendorong program kerja yang melibatkan seluruh angkatan.',
-		'osis',
-		0),
-	('b2b2b2b2-2222-4222-8222-222222222222', 'Dinda Ayu Lestari',
-		'https://i.pravatar.cc/400?img=47',
-		'OSIS yang kreatif dan peduli, menghadirkan kegiatan yang bermanfaat bagi siswa dan sekolah.',
-		'Menggelar pelatihan kepemimpinan untuk pengurus kelas.' || chr(10) ||
-		'Mengaktifkan kembali ekstrakurikuler yang vakum.' || chr(10) ||
-		'Menjalin kerja sama kegiatan dengan OSIS sekolah lain.',
-		'osis',
-		1),
-	('c3c3c3c3-3333-4333-8333-333333333333', 'Fajar Nugroho',
-		'https://i.pravatar.cc/400?img=59',
-		'Membangun OSIS yang disiplin, solid, dan berprestasi di bidang akademik maupun non-akademik.',
-		'Menyusun kalender kegiatan tahunan yang realistis.' || chr(10) ||
-		'Membentuk tim dukungan untuk lomba antar sekolah.' || chr(10) ||
-		'Menerbitkan buletin sekolah setiap dua bulan.',
-		'osis',
-		2)
+INSERT INTO candidates (id, name, photo_url, election, sort_order) VALUES
+	('a1a1a1a1-1111-4111-8111-111111111111', 'Rizky Pratama', 'https://i.pravatar.cc/400?img=12', 'osis', 0),
+	('b2b2b2b2-2222-4222-8222-222222222222', 'Dinda Ayu Lestari', 'https://i.pravatar.cc/400?img=47', 'osis', 1),
+	('c3c3c3c3-3333-4333-8333-333333333333', 'Fajar Nugroho', 'https://i.pravatar.cc/400?img=59', 'osis', 2)
 ON CONFLICT (id) DO NOTHING;
 
 -- 3 kandidat MPK dummy
-INSERT INTO candidates (id, name, photo_url, vision, mission, election, sort_order) VALUES
-	('d4d4d4d4-4444-4444-8444-444444444444', 'Bagas Aditya Pratama',
-		'https://i.pravatar.cc/400?img=5',
-		'Menjadikan MPK sebagai jembatan aspirasi setiap kelas yang tegas dan didengar.',
-		'Menampung dan meneruskan aspirasi perwakilan kelas setiap bulan.' || chr(10) ||
-		'Mengawal keterbukaan anggaran kegiatan OSIS.' || chr(10) ||
-		'Menyusun tata tertib MPK yang jelas dan adil.',
-		'mpk',
-		0),
-	('e5e5e5e5-5555-4555-8555-555555555555', 'Sinta Maharani',
-		'https://i.pravatar.cc/400?img=32',
-		'MPK yang aktif mengawal program OSIS agar tepat sasaran dan transparan.',
-		'Rapat koordinasi rutin MPK dengan pengurus OSIS.' || chr(10) ||
-		'Evaluasi terbuka setiap program kerja OSIS.' || chr(10) ||
-		'Forum dengar pendapat perwakilan kelas tiap triwulan.',
-		'mpk',
-		1),
-	('f6f6f6f6-6666-4666-8666-666666666666', 'Yoga Saputra',
-		'https://i.pravatar.cc/400?img=68',
-		'Membangun MPK yang solid, disiplin, dan dekat dengan perwakilan tiap kelas.',
-		'Pelatihan kepemimpinan untuk anggota MPK.' || chr(10) ||
-		'Jadwal piket aspirasi yang mudah dihubungi.' || chr(10) ||
-		'Laporan kegiatan MPK yang dipublikasikan tiap semester.',
-		'mpk',
-		2)
+INSERT INTO candidates (id, name, photo_url, election, sort_order) VALUES
+	('d4d4d4d4-4444-4444-8444-444444444444', 'Bagas Aditya Pratama', 'https://i.pravatar.cc/400?img=5', 'mpk', 0),
+	('e5e5e5e5-5555-4555-8555-555555555555', 'Sinta Maharani', 'https://i.pravatar.cc/400?img=32', 'mpk', 1),
+	('f6f6f6f6-6666-4666-8666-666666666666', 'Yoga Saputra', 'https://i.pravatar.cc/400?img=68', 'mpk', 2)
 ON CONFLICT (id) DO NOTHING;
 
 -- Nyalakan pemilihan MPK untuk preview (admin bisa mematikan di Pengaturan)

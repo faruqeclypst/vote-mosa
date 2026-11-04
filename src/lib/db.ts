@@ -25,8 +25,6 @@ export interface Candidate {
 	id: string;
 	name: string;
 	photo_url: string | null;
-	vision: string | null;
-	mission: string | null;
 	election: 'osis' | 'mpk';
 	sort_order: number;
 }

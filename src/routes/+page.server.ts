@@ -13,7 +13,7 @@ export const load: PageServerLoad = async () => {
 		let candidates: Candidate[] = [];
 		if (elections.length > 0) {
 			const rows = (await sql`
-				SELECT id, name, photo_url, vision, mission, election, sort_order,
+				SELECT id, name, photo_url, election, sort_order,
 					(photo_data IS NOT NULL) AS has_blob, updated_at
 				FROM candidates
 				WHERE election IN ${sql(elections)}

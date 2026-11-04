@@ -24,7 +24,7 @@ export const PUT: RequestHandler = async (event) => {
 		rows = (await sql`
 			UPDATE candidates
 			SET name = ${d.name}, photo_url = ${d.photo_url}, photo_data = ${photo.data}, photo_mime = ${photo.mime},
-				vision = ${d.vision}, mission = ${d.mission}, election = ${d.election}, sort_order = ${d.sort_order}, updated_at = now()
+				election = ${d.election}, sort_order = ${d.sort_order}, updated_at = now()
 			WHERE id = ${id}
 			RETURNING id
 		`) as unknown as { id: string }[];
@@ -32,7 +32,7 @@ export const PUT: RequestHandler = async (event) => {
 		rows = (await sql`
 			UPDATE candidates
 			SET name = ${d.name}, photo_url = ${d.photo_url}, photo_data = NULL, photo_mime = NULL,
-				vision = ${d.vision}, mission = ${d.mission}, election = ${d.election}, sort_order = ${d.sort_order}, updated_at = now()
+				election = ${d.election}, sort_order = ${d.sort_order}, updated_at = now()
 			WHERE id = ${id}
 			RETURNING id
 		`) as unknown as { id: string }[];
@@ -40,7 +40,7 @@ export const PUT: RequestHandler = async (event) => {
 		rows = (await sql`
 			UPDATE candidates
 			SET name = ${d.name}, photo_url = ${d.photo_url},
-				vision = ${d.vision}, mission = ${d.mission}, election = ${d.election}, sort_order = ${d.sort_order}, updated_at = now()
+				election = ${d.election}, sort_order = ${d.sort_order}, updated_at = now()
 			WHERE id = ${id}
 			RETURNING id
 		`) as unknown as { id: string }[];

@@ -9,8 +9,6 @@ interface CandidateRow {
 	id: string;
 	name: string;
 	photo_url: string | null;
-	vision: string | null;
-	mission: string | null;
 	election: 'osis' | 'mpk';
 	sort_order: number;
 	has_blob: boolean;
@@ -24,14 +22,12 @@ function toItem(r: CandidateRow) {
 		photo_url: candidatePhotoSrc(r),
 		photo_link: r.has_blob ? null : r.photo_url,
 		has_blob: r.has_blob,
-		vision: r.vision,
-		mission: r.mission,
 		election: r.election,
 		sort_order: r.sort_order
 	};
 }
 
-const SELECT = `id, name, photo_url, vision, mission, election, sort_order, (photo_data IS NOT NULL) AS has_blob, updated_at`;
+const SELECT = `id, name, photo_url, election, sort_order, (photo_data IS NOT NULL) AS has_blob, updated_at`;
 
 export const GET: RequestHandler = async (event) => {
 	const auth = requireAdmin(event);
@@ -57,8 +53,8 @@ export const POST: RequestHandler = async (event) => {
 	const photoData = photo.kind === 'set' ? photo.data : null;
 	const photoMime = photo.kind === 'set' ? photo.mime : null;
 	const rows = (await sql`
-		INSERT INTO candidates (name, photo_url, photo_data, photo_mime, vision, mission, election, sort_order)
-		VALUES (${d.name}, ${d.photo_url}, ${photoData}, ${photoMime}, ${d.vision}, ${d.mission}, ${d.election}, ${d.sort_order})
+		INSERT INTO candidates (name, photo_url, photo_data, photo_mime, election, sort_order)
+		VALUES (${d.name}, ${d.photo_url}, ${photoData}, ${photoMime}, ${d.election}, ${d.sort_order})
 		RETURNING id
 	`) as unknown as { id: string }[];
 	const created = (await sql.unsafe(`SELECT ${SELECT} FROM candidates WHERE id = $1`, [rows[0].id])) as unknown as CandidateRow[];

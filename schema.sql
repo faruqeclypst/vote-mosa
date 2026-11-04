@@ -17,8 +17,6 @@ CREATE TABLE IF NOT EXISTS candidates (
 	photo_url text,
 	photo_data bytea,
 	photo_mime text,
-	vision text,
-	mission text,
 	election text NOT NULL DEFAULT 'osis' CHECK (election IN ('osis', 'mpk')),
 	sort_order int NOT NULL DEFAULT 0,
 	created_at timestamptz NOT NULL DEFAULT now(),
