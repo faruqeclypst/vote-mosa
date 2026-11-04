@@ -238,7 +238,7 @@
 	<title>{data.title} - {data.school}</title>
 </svelte:head>
 
-<div class="min-h-dvh py-6 sm:py-10 px-4">
+<div class="min-h-dvh flex items-center justify-center px-4 py-6 sm:py-10">
 	<div class="sheet">
 		{#if done}
 			<!-- Layar sukses -->
