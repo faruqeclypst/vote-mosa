@@ -2,7 +2,7 @@
 
 Aplikasi voting digital pemilihan ketua OSIS. SvelteKit + TypeScript + Tailwind CSS,
 PostgreSQL (TCP lokal via driver `postgres`, tanpa ORM), jalan di Docker di belakang
-Caddy reverse proxy: **https://pemos.alfaruqasri.my.id**.
+Caddy reverse proxy: **https://vote.sman-modalbangsa.sch.id**.
 
 Alur pemilih: masukkan kode token (5 karakter) → geser kartu kandidat
 (kanan = pilih, kiri = lewati) → konfirmasi → suara tercatat. Token guru bernilai
@@ -43,7 +43,7 @@ seharusnya `200`.
 
 ### Buat admin pertama
 
-1. Buka https://pemos.alfaruqasri.my.id/admin
+1. Buka https://vote.sman-modalbangsa.sch.id/admin
 2. Karena tabel `admins` masih kosong, otomatis diarahkan ke `/admin/setup`.
 3. Isi nama, email, password (min 8 karakter) → jadi super admin, langsung login.
 
