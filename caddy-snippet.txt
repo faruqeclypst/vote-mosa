@@ -1,3 +1,8 @@
-pemos.alfaruqasri.my.id {
+vote.sman-modalbangsa.sch.id {
 	reverse_proxy 127.0.0.1:3103
+}
+
+# Domain lama: alihkan ke domain baru (aktifkan setelah DNS vote.* live)
+pemos.alfaruqasri.my.id {
+	redir https://vote.sman-modalbangsa.sch.id{uri} 302
 }
