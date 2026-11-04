@@ -276,6 +276,7 @@
 				<p role="alert" class="alert-error mb-6">{submitError}</p>
 			{/if}
 
+			{#if tokenState !== 'valid'}
 			<!-- Kode token -->
 			<section aria-label="Kode token" class="w-full max-w-[560px] mx-auto">
 				<span class="lbl">KODE TOKEN</span>
@@ -309,6 +310,7 @@
 					<p role="alert" class="alert-error mb-6">{tokenError}</p>
 				{/if}
 			</section>
+			{/if}
 
 			<!-- Surat suara per pemilihan -->
 			{#if tokenState === 'valid'}
@@ -330,8 +332,8 @@
 											src={c.photo_url}
 											alt="Foto {c.name}"
 											name={c.name}
-											imgClass="w-full h-60 sm:h-72 object-cover rounded-md mt-5"
-											fallbackClass="w-full h-60 sm:h-72 rounded-md mt-5"
+											imgClass="w-full max-w-[400px] mx-auto aspect-[4/5] object-cover rounded-md mt-5"
+											fallbackClass="w-full max-w-[400px] mx-auto aspect-[4/5] rounded-md mt-5"
 											initialClass="text-6xl font-extrabold text-flag"
 										/>
 										<span class="block text-3xl font-extrabold leading-tight mt-5">{c.name}</span>

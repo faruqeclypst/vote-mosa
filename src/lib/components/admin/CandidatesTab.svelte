@@ -230,10 +230,10 @@
 				</div>
 				<div class="shrink-0">
 					<span class="field-label" id="c-photo-label">Foto</span>
-					<div class="relative h-[50px] w-[50px]">
+					<div class="relative h-[60px] w-[48px]">
 						<label
 							for="c-photo-file"
-							class="block h-[50px] w-[50px] rounded-md border bg-white cursor-pointer overflow-hidden"
+							class="block h-[60px] w-[48px] rounded-md border bg-white cursor-pointer overflow-hidden"
 							aria-label="Unggah foto kandidat"
 							title="Unggah foto kandidat"
 						>
@@ -345,8 +345,8 @@
 											src={c.photo_url}
 											alt="Foto {c.name}"
 											name={c.name}
-											imgClass="w-11 h-11 rounded-md object-cover border border-line shrink-0"
-											fallbackClass="w-11 h-11 rounded-md shrink-0"
+											imgClass="w-11 aspect-[4/5] rounded-md object-cover border border-line shrink-0"
+											fallbackClass="w-11 aspect-[4/5] rounded-md shrink-0"
 											initialClass="text-lg font-extrabold text-flag"
 										/>
 										<span class="font-extrabold">{c.name}</span>

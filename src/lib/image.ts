@@ -1,8 +1,10 @@
-// Kompres foto kandidat di browser sebelum diunggah: sisi terpanjang 720px, JPEG 82%.
+// Kompres foto kandidat di browser sebelum diunggah: crop rasio 4:5 (potret),
+// sisi terpanjang 720px, JPEG 82%.
 // Hasil akhir dikirim sebagai data URL dan disimpan sebagai blob di database.
 
 const MAX_DIM = 720;
 const QUALITY = 0.82;
+const RATIO = 4 / 5; // lebar : tinggi
 
 function blobToDataUrl(blob: Blob): Promise<string> {
 	return new Promise((resolve, reject) => {
@@ -28,9 +30,21 @@ export async function compressImage(file: File): Promise<CompressedImage> {
 	} catch {
 		bitmap = await createImageBitmap(file);
 	}
-	const scale = Math.min(1, MAX_DIM / Math.max(bitmap.width, bitmap.height));
-	const w = Math.max(1, Math.round(bitmap.width * scale));
-	const h = Math.max(1, Math.round(bitmap.height * scale));
+	const srcW = bitmap.width;
+	const srcH = bitmap.height;
+	// Kotak crop 4:5: pangkas lebar bila sumber terlalu lebar; bila terlalu tinggi,
+	// pangkas condong ke atas (25% dari atas) agar bagian wajah aman.
+	let cropW = srcW;
+	let cropH = Math.round(srcW / RATIO);
+	if (cropH > srcH) {
+		cropH = srcH;
+		cropW = Math.round(srcH * RATIO);
+	}
+	const offX = Math.round((srcW - cropW) / 2);
+	const offY = Math.round((srcH - cropH) * 0.25);
+	const scale = Math.min(1, MAX_DIM / Math.max(cropW, cropH));
+	const w = Math.max(1, Math.round(cropW * scale));
+	const h = Math.max(1, Math.round(cropH * scale));
 	const canvas = document.createElement('canvas');
 	canvas.width = w;
 	canvas.height = h;
@@ -38,16 +52,11 @@ export async function compressImage(file: File): Promise<CompressedImage> {
 	if (!ctx) throw new Error('Browser tidak mendukung pengolahan gambar.');
 	ctx.fillStyle = '#ffffff';
 	ctx.fillRect(0, 0, w, h);
-	ctx.drawImage(bitmap, 0, 0, w, h);
+	ctx.drawImage(bitmap, offX, offY, cropW, cropH, 0, 0, w, h);
 	bitmap.close();
 
 	const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, 'image/jpeg', QUALITY));
 	if (!blob) throw new Error('Gagal mengompres gambar.');
-
-	// Bila berkas asli sudah kecil dan hasil kompres justru lebih besar, pakai aslinya.
-	if (file.size <= 250 * 1024 && file.size < blob.size && ['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
-		return { dataUrl: await blobToDataUrl(file), bytes: file.size };
-	}
 	return { dataUrl: await blobToDataUrl(blob), bytes: blob.size };
 }
 
