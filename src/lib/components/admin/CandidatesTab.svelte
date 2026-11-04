@@ -206,7 +206,7 @@
 			<div class="flex gap-3 items-start">
 				<div class="flex-1 min-w-0">
 					<span class="field-label" id="c-election-label">Pemilihan</span>
-					<div class="flex h-[50px] items-center gap-1 rounded-md border bg-white p-1" role="radiogroup" aria-labelledby="c-election-label">
+					<div class="flex h-[60px] items-center gap-1 rounded-md border bg-white p-1" role="radiogroup" aria-labelledby="c-election-label">
 						{#each [{ id: 'osis', label: 'OSIS' }, { id: 'mpk', label: 'MPK' }] as opt}
 							<button
 								type="button"
@@ -273,7 +273,7 @@
 			{/if}
 			<div class="flex gap-2">
 				<button type="submit" disabled={saving} class="btn-flag flex-1">
-					{saving ? 'Menyimpan...' : editingId ? 'Simpan perubahan' : 'Tambah kandidat'}
+					{saving ? (editingId ? 'Mengupdate...' : 'Menyimpan...') : editingId ? 'Update' : 'Tambah kandidat'}
 				</button>
 				{#if editingId}
 					<button type="button" onclick={resetForm} class="btn-line !min-h-[54px]">
