@@ -239,7 +239,7 @@
 </svelte:head>
 
 <div class="min-h-dvh flex items-center justify-center px-4 py-6 sm:py-10">
-	<div class="sheet">
+	<div class="sheet sheet-fluid">
 		{#if done}
 			<!-- Layar sukses -->
 			<div class="kop">
@@ -259,8 +259,10 @@
 				<h1 class="kop-title">{data.title}</h1>
 			</div>
 			<div class="rule-double"></div>
-			<h2 class="text-xl font-extrabold mb-2">Pemilihan sedang ditutup</h2>
-			<p class="hint">Panitia belum membuka masa pemilihan. Silakan kembali lagi nanti.</p>
+			<div class="text-center max-w-xl mx-auto">
+				<h2 class="text-xl font-extrabold mb-2">Pemilihan sedang ditutup</h2>
+				<p class="hint !mb-0">Panitia belum membuka masa pemilihan. Silakan kembali lagi nanti.</p>
+			</div>
 		{:else}
 			<!-- Kop surat suara -->
 			<div class="kop">
@@ -275,7 +277,7 @@
 			{/if}
 
 			<!-- Kode token -->
-			<section aria-label="Kode token">
+			<section aria-label="Kode token" class="w-full max-w-[560px] mx-auto">
 				<span class="lbl">KODE TOKEN</span>
 				<p class="hint">Masukkan 5 karakter token yang dibagikan panitia. Satu token berlaku untuk setiap pemilihan yang dibuka.</p>
 				<div class="tokenboxes" role="group" aria-label="Kode token, 5 karakter">
@@ -315,12 +317,12 @@
 						<div class={ei > 0 ? 'mt-8' : ''}>
 							<span class="lbl">SURAT SUARA — {ELECTION_LABEL[election as keyof typeof ELECTION_LABEL].toUpperCase()}</span>
 							<p class="hint">Ketuk satu kandidat untuk mencoblos. Kamu bisa mengganti pilihan sebelum disahkan.</p>
-							<div>
+							<div class="grid gap-5 sm:grid-cols-2 xl:grid-cols-3 items-stretch">
 								{#each candidatesByElection[election] as c, i (c.id)}
 									<button
 										type="button"
 										onclick={() => togglePick(election, c.id)}
-										class="ballot-row {picks[election] === c.id ? 'picked' : ''}"
+										class="ballot-card {picks[election] === c.id ? 'picked' : ''}"
 										aria-pressed={picks[election] === c.id}
 									>
 										<span class="num-circle" aria-hidden="true">{i + 1}</span>
@@ -328,16 +330,14 @@
 											src={c.photo_url}
 											alt="Foto {c.name}"
 											name={c.name}
-											imgClass="w-14 h-14 rounded-md object-cover shrink-0"
-											fallbackClass="w-14 h-14 rounded-md shrink-0"
-											initialClass="text-xl font-extrabold text-flag"
+											imgClass="w-full h-60 sm:h-72 object-cover rounded-md mt-5"
+											fallbackClass="w-full h-60 sm:h-72 rounded-md mt-5"
+											initialClass="text-6xl font-extrabold text-flag"
 										/>
-										<span class="flex-1 min-w-0 text-left">
-											<span class="block text-[17px] font-extrabold leading-snug">{c.name}</span>
-											{#if visionOf(c)}
-												<span class="block text-[13px] text-muted leading-snug mt-0.5">{visionOf(c)}</span>
-											{/if}
-										</span>
+										<span class="block text-2xl font-extrabold leading-tight mt-5">{c.name}</span>
+										{#if visionOf(c)}
+											<span class="block text-sm text-muted leading-snug mt-1.5">{visionOf(c)}</span>
+										{/if}
 										{#if picks[election] === c.id}
 											<span class="stamp" aria-hidden="true">COBLOS</span>
 										{/if}
@@ -350,20 +350,22 @@
 						<p class="hint">Belum ada kandidat yang bisa dipilih dengan token ini.</p>
 					{/if}
 
-					<button
-						type="button"
-						disabled={!canSubmit}
-						onclick={() => (showConfirm = true)}
-						class="btn-flag mt-5"
-					>
-						Sahkan suaraku
-					</button>
-					{#if tokenState === 'valid' && missingElections.length > 0}
-						<p class="hint mt-2 !mb-0">
-							Pilih juga {missingElections.map((e) => ELECTION_LABEL[e as keyof typeof ELECTION_LABEL]).join(' dan ')} sebelum mengesahkan.
-						</p>
-					{/if}
-					<p class="footnote">Suaramu tercatat permanen setelah disahkan.<br />Pilihanmu rahasia, panitia tidak bisa melacaknya.</p>
+					<div class="w-full max-w-2xl mx-auto">
+						<button
+							type="button"
+							disabled={!canSubmit}
+							onclick={() => (showConfirm = true)}
+							class="btn-flag mt-5"
+						>
+							Sahkan suaraku
+						</button>
+						{#if tokenState === 'valid' && missingElections.length > 0}
+							<p class="hint mt-2 !mb-0">
+								Pilih juga {missingElections.map((e) => ELECTION_LABEL[e as keyof typeof ELECTION_LABEL]).join(' dan ')} sebelum mengesahkan.
+							</p>
+						{/if}
+						<p class="footnote">Suaramu tercatat permanen setelah disahkan.<br />Pilihanmu rahasia, panitia tidak bisa melacaknya.</p>
+					</div>
 				</section>
 			{/if}
 		{/if}
